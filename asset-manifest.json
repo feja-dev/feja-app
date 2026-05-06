@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/feja-app/static/css/main.f63f255c.css",
+    "main.js": "/feja-app/static/js/main.e25c4706.js",
+    "static/js/453.4b455ab4.chunk.js": "/feja-app/static/js/453.4b455ab4.chunk.js",
+    "static/media/Feja Logov1.png": "/feja-app/static/media/Feja Logov1.8e6bed9a53d2f31b2fea.png",
+    "index.html": "/feja-app/index.html",
+    "main.f63f255c.css.map": "/feja-app/static/css/main.f63f255c.css.map",
+    "main.e25c4706.js.map": "/feja-app/static/js/main.e25c4706.js.map",
+    "453.4b455ab4.chunk.js.map": "/feja-app/static/js/453.4b455ab4.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f63f255c.css",
+    "static/js/main.e25c4706.js"
+  ]
+}
