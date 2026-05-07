@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import logo from './Feja Logov1.png';
+import supabase from './supabase';
+
+const DEV_BYPASS = false; // set to true to skip login during dev
+
+const MOCK_USER = { id: null, email: 'test@feja.com', user_metadata: { name: 'Jaye', role: 'admin' } };
 
 const PASS_ACTIONS = ['All good', 'Checked', 'No issues'];
 
@@ -44,10 +49,124 @@ function getResult(threshold, temp) {
   return 'pass';
 }
 
-function StaffChecklist({ onSignOut }) {
+function LandingPage({ onOpenApp }) {
+  const [showForm, setShowForm] = useState(false);
+  const [formName, setFormName] = useState('');
+  const [formCompany, setFormCompany] = useState('');
+  const [formEmail, setFormEmail] = useState('');
+  const [formLoading, setFormLoading] = useState(false);
+  const [formDone, setFormDone] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const handleLeadSubmit = async () => {
+    if (!formName.trim() || !formCompany.trim() || !formEmail.trim()) return;
+    setFormLoading(true);
+    setFormError('');
+    const { error } = await supabase.from('leads').insert({
+      name: formName.trim(),
+      company: formCompany.trim(),
+      email: formEmail.trim(),
+    });
+    setFormLoading(false);
+    if (error) { setFormError('Something went wrong. Try again.'); return; }
+    setFormDone(true);
+  };
+
+  return (
+    <div className="lp">
+
+      <nav className="lp-nav">
+        <div className="lp-nav-wordmark">fe<span>ja</span>.</div>
+        <button className="lp-nav-signin" onClick={onOpenApp}>Sign in</button>
+      </nav>
+
+      <section className="lp-hero">
+        <img src={logo} alt="Feja" className="lp-hero-logo" />
+        <h1 className="lp-hero-headline">Kitchen compliance,<br />made simple.</h1>
+        <p className="lp-hero-sub">Ditch the paper. Log temps, track corrective actions, and stay audit-ready. Right from your phone.</p>
+        {!showForm && !formDone && (
+          <button className="lp-btn-primary" onClick={() => setShowForm(true)}>
+            Start free trial
+          </button>
+        )}
+
+        {showForm && !formDone && (
+          <div className="lp-lead-form">
+            <input className="f-input" placeholder="Your name" value={formName} onChange={e => setFormName(e.target.value)} />
+            <input className="f-input" placeholder="Venue / company name" value={formCompany} onChange={e => setFormCompany(e.target.value)} />
+            <input className="f-input" type="email" placeholder="Email address" value={formEmail} onChange={e => setFormEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLeadSubmit()} />
+            {formError && <p className="auth-error">{formError}</p>}
+            <button className="lp-btn-primary" onClick={handleLeadSubmit} disabled={formLoading}>
+              {formLoading ? 'Sending...' : 'Get started'}
+            </button>
+            <button className="lp-lead-cancel" onClick={() => setShowForm(false)}>Cancel</button>
+          </div>
+        )}
+
+        {formDone && (
+          <div className="lp-lead-success">
+            <p className="lp-lead-success-title">You're on the list.</p>
+            <p className="lp-lead-success-sub">We'll be in touch within 24 hours to get you set up.</p>
+          </div>
+        )}
+
+        <p className="lp-hero-trust">14-day free trial · No card required · $30/month after</p>
+      </section>
+
+      <section className="lp-features">
+        <div className="lp-feature">
+          <div className="lp-feature-title">Log in seconds</div>
+          <div className="lp-feature-text">Temp checks, pass/fail results, and corrective actions. Done in a tap, from any device.</div>
+        </div>
+        <div className="lp-feature">
+          <div className="lp-feature-title">Always audit-ready</div>
+          <div className="lp-feature-text">Every entry is timestamped and stored. Pull reports the moment an inspector walks in.</div>
+        </div>
+        <div className="lp-feature">
+          <div className="lp-feature-title">Built for your whole team</div>
+          <div className="lp-feature-text">Unlimited staff. Admins get a full dashboard and settings control. One flat price per venue.</div>
+        </div>
+      </section>
+
+      <section className="lp-pricing">
+        <p className="lp-pricing-eyebrow">Pricing</p>
+        <h2 className="lp-pricing-title">One plan. No surprises.</h2>
+        <div className="lp-plan">
+          <div className="lp-plan-price">
+            <span className="lp-plan-amt">$30</span>
+            <span className="lp-plan-per">/month per venue</span>
+          </div>
+          <p className="lp-plan-trial">14-day free trial · No card required</p>
+          <ul className="lp-plan-list">
+            <li>Unlimited staff</li>
+            <li>All compliance sections</li>
+            <li>Admin dashboard &amp; reports</li>
+            <li>Australian food safety standards</li>
+          </ul>
+          <a className="lp-btn-primary" href="mailto:jaoli1982@gmail.com?subject=Feja Early Access">
+            Start free trial
+          </a>
+        </div>
+      </section>
+
+      <footer className="lp-footer">
+        <div className="lp-footer-wordmark">fe<span>ja</span>.</div>
+        <p className="lp-footer-tag">Less paperwork, more cooking.</p>
+        <a className="lp-footer-contact" href="mailto:jaoli1982@gmail.com">jaoli1982@gmail.com</a>
+      </footer>
+
+    </div>
+  );
+}
+
+function StaffChecklist({ onSignOut, user, venue }) {
   const [entries, setEntries] = useState({});
   const [collapsed, setCollapsed] = useState(() => Object.fromEntries(LOG_SECTIONS.map(s => [s.id, true])));
   const [logged, setLogged] = useState({});
+  const [submitting, setSubmitting] = useState({});
+
+  const displayName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'there';
+
   const toggleSection = (id) => setCollapsed(prev => ({ ...prev, [id]: !prev[id] }));
 
   const set = (key, field, value) =>
@@ -62,6 +181,26 @@ function StaffChecklist({ onSignOut }) {
     setEntries(prev => ({ ...prev, [key]: { ...entry, ...prev[key], actions: nextActions, note: nextNote } }));
   };
 
+  const handleLog = async (key, section, entry) => {
+    setSubmitting(prev => ({ ...prev, [key]: true }));
+    const result = getResult(section.threshold, entry.temp);
+    const { error } = await supabase.from('logs').insert({
+      user_id: user.id,
+      user_name: displayName,
+      venue_id: venue?.id || null,
+      section_id: section.id,
+      item: key.split('__')[1],
+      temp: entry.temp !== '' ? parseFloat(entry.temp) : null,
+      result,
+      note: entry.note || null,
+      actions: entry.actions,
+    });
+    setSubmitting(prev => ({ ...prev, [key]: false }));
+    if (!error) {
+      setLogged(prev => ({ ...prev, [key]: true }));
+    }
+  };
+
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-AU', { weekday: 'short', day: '2-digit', month: 'short' });
   const timeStr = now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -74,7 +213,7 @@ function StaffChecklist({ onSignOut }) {
           <div className="hdr-date">{dateStr} · {timeStr}</div>
         </div>
         <div className="app-hdr-bottom">
-          <div className="hdr-name">Hi, Nando</div>
+          <div className="hdr-name">Hi, {displayName}</div>
           <div />
           <button className="signout-pill" onClick={onSignOut}>sign out</button>
         </div>
@@ -156,8 +295,11 @@ function StaffChecklist({ onSignOut }) {
                   {result && !isLogged && (
                     <button
                       className="log-submit-btn"
-                      onClick={() => setLogged(prev => ({ ...prev, [key]: true }))}
-                    >Log and tick off</button>
+                      disabled={submitting[key]}
+                      onClick={() => handleLog(key, section, entry)}
+                    >
+                      {submitting[key] ? 'Logging...' : 'Log and tick off'}
+                    </button>
                   )}
 
                   {isLogged && (
@@ -173,11 +315,58 @@ function StaffChecklist({ onSignOut }) {
   );
 }
 
-function DashboardView({ sections, exportOpen, setExportOpen }) {
+function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
   const [openDay, setOpenDay] = useState(0);
   const [openItems, setOpenItems] = useState({});
+  const [logsByDay, setLogsByDay] = useState({});
   const toggleItem = (key) => setOpenItems(p => ({ ...p, [key]: !p[key] }));
   const totalItems = sections.reduce((n, s) => n + s.items.length, 0);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      const since = new Date();
+      since.setDate(since.getDate() - 4);
+      since.setHours(0, 0, 0, 0);
+
+      let query = supabase
+        .from('logs')
+        .select('*')
+        .gte('logged_at', since.toISOString())
+        .order('logged_at', { ascending: false });
+
+      if (venueId) query = query.eq('venue_id', venueId);
+
+      const { data } = await query;
+      if (!data) return;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const grouped = {};
+      data.forEach(log => {
+        const d = new Date(log.logged_at);
+        d.setHours(0, 0, 0, 0);
+        const offset = Math.round((today - d) / 86400000);
+        if (offset >= 0 && offset <= 4) {
+          if (!grouped[offset]) grouped[offset] = [];
+          const name = log.user_name || '';
+          const initials = name.split(' ').map(n => n[0] || '').join('').toUpperCase().slice(0, 2) || '?';
+          grouped[offset].push({
+            time: new Date(log.logged_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false }),
+            sectionId: log.section_id,
+            item: log.item,
+            result: log.result,
+            temp: log.temp,
+            initials,
+          });
+        }
+      });
+
+      setLogsByDay(grouped);
+    };
+
+    fetchLogs();
+  }, [venueId]);
 
   const dayLabel = (offset) => {
     if (offset === 0) return 'Today';
@@ -189,9 +378,8 @@ function DashboardView({ sections, exportOpen, setExportOpen }) {
 
   return (
     <div className="dash-body">
-
       {[0, 1, 2, 3, 4].map(offset => {
-        const logs = MOCK_LOGS_BY_DAY[offset] || [];
+        const logs = logsByDay[offset] || [];
         const loggedItems = logs.length;
         const pct = Math.round((loggedItems / totalItems) * 100);
         const fails = logs.filter(l => l.result === 'fail').length;
@@ -292,9 +480,9 @@ function DashboardView({ sections, exportOpen, setExportOpen }) {
         <button className="dash-export-btn" onClick={() => setExportOpen(o => !o)}>Export ▾</button>
         {exportOpen && (
           <div className="dash-export-dropdown">
-            <div className="dash-export-item">📧 Email report</div>
-            <div className="dash-export-item">📄 Download PDF</div>
-            <div className="dash-export-item">📊 Download CSV</div>
+            <div className="dash-export-item">Email report</div>
+            <div className="dash-export-item">Download PDF</div>
+            <div className="dash-export-item">Download CSV</div>
           </div>
         )}
       </div>
@@ -302,41 +490,7 @@ function DashboardView({ sections, exportOpen, setExportOpen }) {
   );
 }
 
-const MOCK_LOGS_BY_DAY = {
-  0: [
-    { time: '14:32', sectionId: 'fridge',    item: 'Walk-in Fridge', result: 'pass', temp: 3,  initials: 'NA' },
-    { time: '14:28', sectionId: 'delivery',  item: 'Delivery 1',     result: 'pass', temp: 4,  initials: 'NA' },
-    { time: '13:55', sectionId: 'reheating', item: 'Item 1',         result: 'pass', temp: 78, initials: 'NA' },
-    { time: '12:10', sectionId: 'fridge',    item: 'Prep Fridge',    result: 'fail', temp: 8,  initials: 'NA' },
-  ],
-  1: [
-    { time: '16:45', sectionId: 'fridge',    item: 'Walk-in Fridge', result: 'pass', temp: 4,  initials: 'NA' },
-    { time: '16:40', sectionId: 'fridge',    item: 'Prep Fridge',    result: 'pass', temp: 3,  initials: 'NA' },
-    { time: '15:10', sectionId: 'reheating', item: 'Item 1',         result: 'pass', temp: 76, initials: 'NA' },
-    { time: '14:55', sectionId: 'serving',   item: 'Item 1',         result: 'pass', temp: 63, initials: 'NA' },
-    { time: '13:20', sectionId: 'delivery',  item: 'Delivery 1',     result: 'pass', temp: 5,  initials: 'NA' },
-  ],
-  2: [
-    { time: '15:30', sectionId: 'fridge',    item: 'Walk-in Fridge', result: 'fail', temp: 9,  initials: 'NA' },
-    { time: '15:25', sectionId: 'fridge',    item: 'Prep Fridge',    result: 'pass', temp: 4,  initials: 'NA' },
-    { time: '14:00', sectionId: 'reheating', item: 'Item 1',         result: 'pass', temp: 80, initials: 'NA' },
-    { time: '11:15', sectionId: 'delivery',  item: 'Delivery 1',     result: 'fail', temp: 8,  initials: 'NA' },
-  ],
-  3: [
-    { time: '17:00', sectionId: 'fridge',    item: 'Walk-in Fridge', result: 'pass', temp: 3,  initials: 'NA' },
-    { time: '16:55', sectionId: 'fridge',    item: 'Prep Fridge',    result: 'pass', temp: 4,  initials: 'NA' },
-    { time: '16:50', sectionId: 'fridge',    item: 'Display Fridge', result: 'pass', temp: 2,  initials: 'NA' },
-    { time: '15:30', sectionId: 'serving',   item: 'Item 1',         result: 'pass', temp: 65, initials: 'NA' },
-    { time: '14:10', sectionId: 'delivery',  item: 'Delivery 1',     result: 'pass', temp: 3,  initials: 'NA' },
-  ],
-  4: [
-    { time: '14:00', sectionId: 'fridge',    item: 'Walk-in Fridge', result: 'pass', temp: 4,  initials: 'NA' },
-    { time: '13:50', sectionId: 'reheating', item: 'Item 1',         result: 'fail', temp: 68, initials: 'NA' },
-    { time: '13:20', sectionId: 'delivery',  item: 'Delivery 1',     result: 'pass', temp: 4,  initials: 'NA' },
-  ],
-};
-
-function AdminDashboard({ onSignOut }) {
+function AdminDashboard({ onSignOut, user, venue }) {
   const [view, setView] = useState('dashboard');
   const [sections, setSections] = useState(LOG_SECTIONS.map(s => ({ ...s, items: [...s.items], correctiveActions: [...s.correctiveActions] })));
   const [collapsed, setCollapsed] = useState(() => ({
@@ -354,6 +508,8 @@ function AdminDashboard({ onSignOut }) {
   const [confirmRemove, setConfirmRemove] = useState(null);
   const [confirmRole, setConfirmRole] = useState(null);
   const [exportOpen, setExportOpen] = useState(false);
+
+  const displayName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Admin';
 
   const addMember = () => {
     if (!newMember.name.trim() || !newMember.email.trim()) return;
@@ -419,7 +575,7 @@ function AdminDashboard({ onSignOut }) {
           <div className="hdr-date">{dateStr} · {timeStr}</div>
         </div>
         <div className="app-hdr-bottom">
-          <div className="hdr-name">Hi, Admin</div>
+          <div className="hdr-name">Hi, {displayName}</div>
           <button className="adm-settings-btn" onClick={() => setView(v => v === 'settings' ? 'dashboard' : 'settings')}>
             {view === 'settings' ? 'Close' : 'Settings'}
           </button>
@@ -428,13 +584,12 @@ function AdminDashboard({ onSignOut }) {
       </div>
 
       {view === 'dashboard' && (
-        <DashboardView sections={sections} exportOpen={exportOpen} setExportOpen={setExportOpen} />
+        <DashboardView sections={sections} exportOpen={exportOpen} setExportOpen={setExportOpen} venueId={venue?.id} />
       )}
 
       {view === 'settings' && (
       <div className="adm-body">
 
-        {/* Items collapsible */}
         <div className="adm-section">
           <div className="adm-section-hdr" onClick={() => toggleSection('__items__')}>
             <span className="adm-section-title">Items</span>
@@ -553,7 +708,6 @@ function AdminDashboard({ onSignOut }) {
           )}
         </div>
 
-        {/* Team collapsible */}
         <div className="adm-section">
           <div className="adm-section-hdr" onClick={() => toggleSection('__team__')}>
             <span className="adm-section-title">Team</span>
@@ -633,14 +787,56 @@ const WELCOME_PHRASES = [
   { text: '欢迎回来',               pronunciation: 'hwahn-ying hway-lye' },
 ];
 
-const SPIN_STYLES = ['spin-rotate', 'spin-flip', 'spin-bounce'];
-
 function App() {
-  const [screen, setScreen] = useState('landing');
-  const [spinning, setSpinning] = useState(false);
-  const [spinStyle] = useState(() => SPIN_STYLES[Math.floor(Math.random() * SPIN_STYLES.length)]);
+  const [screen, setScreen] = useState(null);
+  const [user, setUser] = useState(null);
+  const [venue, setVenue] = useState(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
   const [welcomeIdx, setWelcomeIdx] = useState(0);
   const [welcomeFade, setWelcomeFade] = useState(true);
+
+  const loadUserData = async (authUser) => {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*, venues(*)')
+      .eq('id', authUser.id)
+      .single();
+
+    if (profile?.venues) setVenue(profile.venues);
+
+    const role = profile?.role || authUser.user_metadata?.role;
+    setScreen(role === 'admin' ? 'admin' : 'staff');
+  };
+
+  useEffect(() => {
+    if (DEV_BYPASS) {
+      setUser(MOCK_USER);
+      setScreen('admin');
+      return;
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        loadUserData(session.user);
+      } else {
+        setScreen('linktree');
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setUser(null);
+        setVenue(null);
+        setScreen('linktree');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -653,32 +849,44 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const goToLogin = () => {
-    setSpinning(true);
-    setTimeout(() => {
-      setScreen('login');
-      setSpinning(false);
-    }, 600);
+  const handleLogin = async () => {
+    setLoginLoading(true);
+    setAuthError('');
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoginLoading(false);
+    if (error) {
+      setAuthError('Invalid email or password');
+      return;
+    }
+    setUser(data.user);
+    await loadUserData(data.user);
   };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setVenue(null);
+    setScreen('linktree');
+  };
+
+  if (screen === null) {
+    return (
+      <div className="feja-app lt">
+        <div className="lt-body">
+          <div className="lt-wordmark">fe<span>ja</span>.</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (screen === 'linktree') {
+    return <LandingPage onOpenApp={() => setScreen('login')} />;
+  }
 
   return (
     <div className="feja-app">
-      {screen === 'landing' && (
-        <div className="screen land">
-          <div className="land-top">
-            <div
-              className={`logo-btn ${spinning ? spinStyle : ''}`}
-              onClick={goToLogin}
-            >
-              <img src={logo} alt="Feja" />
-            </div>
-            <p className="tap-hint">↑ tap to sign in</p>
-          </div>
-          <div className="land-bottom">
-            <div className="land-wordmark">fe<span>ja</span>.</div>
-            <p className="tagline">Less paperwork, more cooking.</p>
-          </div>
-        </div>
+      {screen === 'linktree' && (
+        <LandingPage onOpenApp={() => setScreen('login')} />
       )}
 
       {screen === 'login' && (
@@ -695,28 +903,40 @@ function App() {
           </div>
           <div className="login-form">
             <label className="f-lbl">Email</label>
-            <input className="f-input" type="email" placeholder="you@venue.com" />
+            <input
+              className="f-input"
+              type="email"
+              placeholder="you@venue.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+            />
             <label className="f-lbl">Password</label>
-            <input className="f-input" type="password" placeholder="••••••••" />
+            <input
+              className="f-input"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleLogin()}
+            />
+            {authError && <p className="auth-error">{authError}</p>}
             <p className="forgot">Forgot password?</p>
-            <button className="btn-primary" onClick={() => setScreen('staff')}>
-              Sign in
+            <button className="btn-primary" onClick={handleLogin} disabled={loginLoading}>
+              {loginLoading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
           <div className="login-footer">
-            <p className="back-link" onClick={() => setScreen('landing')}>← Back</p>
-            <p className="admin-link" onClick={() => setScreen('admin')}>Demo: Admin view →</p>
+            <p className="back-link" onClick={() => setScreen('linktree')}>← Back</p>
           </div>
         </div>
       )}
 
-
       {screen === 'staff' && (
-        <StaffChecklist onSignOut={() => setScreen('landing')} />
+        <StaffChecklist onSignOut={handleSignOut} user={user} venue={venue} />
       )}
 
       {screen === 'admin' && (
-        <AdminDashboard onSignOut={() => setScreen('landing')} />
+        <AdminDashboard onSignOut={handleSignOut} user={user} venue={venue} />
       )}
     </div>
   );
