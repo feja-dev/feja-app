@@ -445,6 +445,7 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
             item: log.item,
             result: log.result,
             temp: log.temp,
+            name,
             initials,
           });
         }
@@ -456,113 +457,156 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
     fetchLogs();
   }, [venueId]);
 
+  const getShift = () => {
+    const h = new Date().getHours();
+    if (h >= 5 && h < 11) return 'Breakfast';
+    if (h >= 11 && h < 15) return 'Lunch';
+    if (h >= 15 && h < 22) return 'Dinner';
+    return 'Night';
+  };
+
   const dayLabel = (offset) => {
-    if (offset === 0) return 'Today';
     if (offset === 1) return 'Yesterday';
     const d = new Date();
     d.setDate(d.getDate() - offset);
     return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'short' });
   };
 
+  const todayLogs = logsByDay[0] || [];
+  const todayLogged = todayLogs.length;
+  const todayFails = todayLogs.filter(l => l.result === 'fail').length;
+  const todayPct = totalItems > 0 ? Math.round((todayLogged / totalItems) * 100) : 0;
+  const allDone = totalItems > 0 && todayLogged >= totalItems;
+
+  const renderSections = (logs, offset) => (
+    <div className="dash-day-body">
+      {sections.map(section => {
+        const sectionLogs = logs.filter(l => l.sectionId === section.id);
+        const sectionFails = sectionLogs.filter(l => l.result === 'fail').length;
+        const pending = section.items.length - sectionLogs.length;
+        const status = sectionFails > 0 ? 'fail' : pending === section.items.length ? 'pending' : pending === 0 ? 'pass' : 'partial';
+        return (
+          <div key={section.id} className={`dash-section dash-section--${status}`}>
+            <div className="dash-section-hdr-simple">
+              <span className="dash-section-title">{section.title}</span>
+              <span className={`dash-section-badge dash-section-badge--${status}`}>
+                {status === 'fail' ? `${sectionFails} fail` : status === 'pass' ? 'All done' : status === 'pending' ? 'Pending' : `${sectionLogs.length}/${section.items.length}`}
+              </span>
+            </div>
+            <div className="dash-section-body">
+              {section.items.map((item, i) => {
+                const log = sectionLogs.find(l => l.item === item);
+                const itemKey = `${offset}-${section.id}-${i}`;
+                const itemOpen = openItems[itemKey];
+                return (
+                  <div key={i} className="dash-item">
+                    <div className="dash-item-hdr" onClick={() => toggleItem(itemKey)}>
+                      <span className="dash-item-name">{item}</span>
+                      {log
+                        ? <span className={`dash-item-temp dash-item-temp--${log.result}`}>{log.temp}°C</span>
+                        : <span className="dash-item-pending">—</span>
+                      }
+                      <span className="dash-item-time">{log ? log.time : ''}</span>
+                      <div className={`dash-item-initials ${log ? '' : 'dash-item-initials--empty'}`}>{log ? log.initials : ''}</div>
+                      <span className={`log-chevron dash-item-chevron ${itemOpen ? '' : 'log-chevron--up'}`}>›</span>
+                    </div>
+                    {itemOpen && (
+                      <div className="dash-item-body">
+                        {log ? (
+                          <>
+                            <div className="dash-item-detail">
+                              <span className="dash-item-detail-lbl">Temperature</span>
+                              <span className={`dash-item-detail-val dash-item-temp--${log.result}`}>{log.temp}°C · {log.result === 'pass' ? 'Pass' : 'Fail'}</span>
+                            </div>
+                            <div className="dash-item-detail">
+                              <span className="dash-item-detail-lbl">Logged at</span>
+                              <span className="dash-item-detail-val">{log.time}</span>
+                            </div>
+                            <div className="dash-item-detail">
+                              <span className="dash-item-detail-lbl">Logged by</span>
+                              <span className="dash-item-detail-val">{log.name || log.initials}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="dash-item-empty">
+                            <span className="dash-item-empty-txt">No entry recorded</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className="dash-body">
-      {[0, 1, 2, 3, 4].filter(offset => offset === 0 || (logsByDay[offset] || []).length > 0).map(offset => {
+
+      <div className={`dash-summary${allDone && todayFails === 0 ? ' dash-summary--done' : ''}`}>
+        <div className="dash-summary-top">
+          <span className="dash-summary-shift">{getShift()} shift</span>
+          {todayFails > 0 && <span className="dash-summary-badge">{todayFails} fail{todayFails > 1 ? 's' : ''}</span>}
+          {allDone && todayFails === 0 && <span className="dash-summary-badge dash-summary-badge--done">All clear</span>}
+        </div>
+        <div className="dash-summary-stat">
+          <span className="dash-summary-num">{todayLogged}</span>
+          <span className="dash-summary-total">/{totalItems}</span>
+          <span className="dash-summary-label">logged today</span>
+        </div>
+        <div className="dash-summary-bar">
+          <div className="dash-summary-fill" style={{ width: `${todayPct}%` }} />
+        </div>
+        <div className="dash-section-pills">
+          {sections.map(section => {
+            const sLogs = todayLogs.filter(l => l.sectionId === section.id);
+            const sFails = sLogs.filter(l => l.result === 'fail').length;
+            const status = sFails > 0 ? 'fail' : sLogs.length === 0 ? 'pending' : sLogs.length < section.items.length ? 'partial' : 'pass';
+            return <span key={section.id} className={`dash-pill dash-pill--${status}`}>{section.title}</span>;
+          })}
+        </div>
+      </div>
+
+      <div className="dash-day-card">
+        <div className="dash-day-hdr" onClick={() => setOpenDay(openDay === 0 ? -1 : 0)}>
+          <div className="dash-day-hdr-left">
+            <div className="dash-day-label">Today's log</div>
+            <div className="dash-day-meta">{todayLogged === 0 ? 'No entries yet' : `${todayLogged}/${totalItems} items logged`}</div>
+          </div>
+          <span className={`log-chevron ${openDay === 0 ? '' : 'log-chevron--up'}`}>›</span>
+        </div>
+        {openDay === 0 && (
+          todayLogged === 0
+            ? <div className="dash-empty"><span className="dash-empty-txt">Nothing logged yet — start the {getShift().toLowerCase()} check.</span></div>
+            : renderSections(todayLogs, 0)
+        )}
+      </div>
+
+      {[1, 2, 3, 4].filter(offset => (logsByDay[offset] || []).length > 0).map(offset => {
         const logs = logsByDay[offset] || [];
-        const loggedItems = logs.length;
-        const pct = Math.round((loggedItems / totalItems) * 100);
+        const logged = logs.length;
         const fails = logs.filter(l => l.result === 'fail').length;
         const isOpen = openDay === offset;
-
         return (
           <div key={offset} className="dash-day-card">
             <div className="dash-day-hdr" onClick={() => setOpenDay(isOpen ? -1 : offset)}>
               <div className="dash-day-hdr-left">
                 <div className="dash-day-label">{dayLabel(offset)}</div>
-                <div className="dash-day-meta">{loggedItems}/{totalItems} logged{fails > 0 ? ` · ${fails} fail${fails > 1 ? 's' : ''}` : ''}</div>
+                <div className="dash-day-meta">{logged}/{totalItems} logged · {fails > 0 ? `${fails} fail${fails > 1 ? 's' : ''}` : 'All clear'}</div>
               </div>
               <div className="dash-day-hdr-right">
                 {fails > 0 && <span className="dash-section-badge dash-section-badge--fail">{fails} fail{fails > 1 ? 's' : ''}</span>}
                 <span className={`log-chevron ${isOpen ? '' : 'log-chevron--up'}`}>›</span>
               </div>
             </div>
-
-            {isOpen && (
-              <div className="dash-day-body">
-                <div className="dash-progress-row">
-                  <div className="dash-progress-bar">
-                    <div className="dash-progress-fill" style={{ width: `${pct}%` }} />
-                  </div>
-                  <span className="dash-progress-label">{loggedItems}/{totalItems}</span>
-                </div>
-
-                {sections.map(section => {
-                  const sectionLogs = logs.filter(l => l.sectionId === section.id);
-                  const sectionFails = sectionLogs.filter(l => l.result === 'fail').length;
-                  const pending = section.items.length - sectionLogs.length;
-                  const status = sectionFails > 0 ? 'fail' : pending === section.items.length ? 'pending' : pending === 0 ? 'pass' : 'partial';
-                  return (
-                    <div key={section.id} className={`dash-section dash-section--${status}`}>
-                      <div className="dash-section-hdr-simple">
-                        <span className="dash-section-title">{section.title}</span>
-                        <span className={`dash-section-badge dash-section-badge--${status}`}>
-                          {status === 'fail' ? `${sectionFails} fail` : status === 'pass' ? 'All done' : status === 'pending' ? 'Pending' : `${sectionLogs.length}/${section.items.length}`}
-                        </span>
-                      </div>
-                      <div className="dash-section-body">
-                        {section.items.map((item, i) => {
-                          const log = sectionLogs.find(l => l.item === item);
-                          const itemKey = `${offset}-${section.id}-${i}`;
-                          const itemOpen = openItems[itemKey];
-                          return (
-                            <div key={i} className="dash-item">
-                              <div className="dash-item-hdr" onClick={() => toggleItem(itemKey)}>
-                                <span className="dash-item-name">{item}</span>
-                                {log
-                                  ? <span className={`dash-item-temp dash-item-temp--${log.result}`}>{log.temp}°C</span>
-                                  : <span className="dash-item-pending">—</span>
-                                }
-                                <span className="dash-item-time">{log ? log.time : ''}</span>
-                                <div className={`dash-item-initials ${log ? '' : 'dash-item-initials--empty'}`}>{log ? log.initials : ''}</div>
-                                <span className={`log-chevron dash-item-chevron ${itemOpen ? '' : 'log-chevron--up'}`}>›</span>
-                              </div>
-                              {itemOpen && (
-                                <div className="dash-item-body">
-                                  {log ? (
-                                    <>
-                                      <div className="dash-item-detail">
-                                        <span className="dash-item-detail-lbl">Temperature</span>
-                                        <span className={`dash-item-detail-val dash-item-temp--${log.result}`}>{log.temp}°C · {log.result === 'pass' ? 'Pass' : 'Fail'}</span>
-                                      </div>
-                                      <div className="dash-item-detail">
-                                        <span className="dash-item-detail-lbl">Logged at</span>
-                                        <span className="dash-item-detail-val">{log.time}</span>
-                                      </div>
-                                      <div className="dash-item-detail">
-                                        <span className="dash-item-detail-lbl">Logged by</span>
-                                        <span className="dash-item-detail-val">{log.initials}</span>
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <div className="dash-item-empty">
-                                      <span className="dash-item-empty-txt">No entry recorded</span>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {isOpen && renderSections(logs, offset)}
           </div>
         );
       })}
-
-      <button className="dash-view-more">View more</button>
 
       <div className="dash-export-wrap">
         <button className="dash-export-btn" onClick={() => setExportOpen(o => !o)}>Export ▾</button>
@@ -839,6 +883,13 @@ function AdminDashboard({ onSignOut, user, venue }) {
 
         {settingsTab === 'team' && (
           <div className="adm-tab-content">
+            {venue?.id && (
+              <div className="adm-invite-box">
+                <div className="adm-invite-label">Invite link</div>
+                <div className="adm-invite-url">{`${window.location.origin}${window.location.pathname}?invite=${venue.id}`}</div>
+                <button className="adm-invite-copy" onClick={() => navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?invite=${venue.id}`)}>Copy</button>
+              </div>
+            )}
             {team.map(member => (
               <div key={member.id} className="adm-card adm-card--flat">
                 <div className="adm-member-info">
@@ -916,43 +967,53 @@ const WELCOME_PHRASES = [
   { text: '欢迎回来',               pronunciation: 'hwahn-ying hway-lye' },
 ];
 
-function Onboarding({ user, onDone }) {
+function Onboarding({ user, onDone, inviteVenueId }) {
+  const isInvited = !!inviteVenueId;
   const [name, setName] = useState(user?.user_metadata?.name || '');
-  const [role, setRole] = useState('staff');
+  const [venueName, setVenueName] = useState('');
   const [saving, setSaving] = useState(false);
 
   const handleStart = async () => {
     if (!name.trim()) return;
+    if (!isInvited && !venueName.trim()) return;
     setSaving(true);
+
+    let venueId = inviteVenueId;
+    const role = isInvited ? 'staff' : 'admin';
+
+    if (!isInvited) {
+      const { data: venue } = await supabase
+        .from('venues')
+        .insert({ name: venueName.trim() })
+        .select()
+        .single();
+      venueId = venue?.id;
+    }
+
     await supabase.auth.updateUser({ data: { name: name.trim(), role } });
-    await supabase.from('profiles').upsert({ id: user.id, name: name.trim(), role });
+    await supabase.from('profiles').upsert({ id: user.id, name: name.trim(), role, venue_id: venueId });
     setSaving(false);
-    onDone(role);
+    onDone();
   };
 
   return (
     <div className="screen onb-screen">
       <div className="onb-logo">fe<span>ja</span>.</div>
-      <h1 className="onb-title">Welcome to Feja</h1>
-      <p className="onb-sub">Quick setup before you get started.</p>
+      <h1 className="onb-title">{isInvited ? "You're invited" : 'Set up your venue'}</h1>
+      <p className="onb-sub">{isInvited ? 'Create your account to get started.' : 'A couple of details before you dive in.'}</p>
 
       <div className="onb-form">
         <label className="f-lbl">Your name</label>
         <input className="f-input" placeholder="e.g. Jaye" value={name} onChange={e => setName(e.target.value)} />
 
-        <label className="f-lbl" style={{ marginTop: 20 }}>Your role</label>
-        <div className="onb-role-row">
-          <button className={`onb-role-btn ${role === 'staff' ? 'onb-role-btn--on' : ''}`} onClick={() => setRole('staff')}>
-            <span className="onb-role-title">Staff</span>
-            <span className="onb-role-desc">Log temps and checks</span>
-          </button>
-          <button className={`onb-role-btn ${role === 'admin' ? 'onb-role-btn--on' : ''}`} onClick={() => setRole('admin')}>
-            <span className="onb-role-title">Admin</span>
-            <span className="onb-role-desc">Dashboard and settings</span>
-          </button>
-        </div>
+        {!isInvited && (
+          <>
+            <label className="f-lbl" style={{ marginTop: 20 }}>Venue name</label>
+            <input className="f-input" placeholder="e.g. The Blue Door" value={venueName} onChange={e => setVenueName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleStart()} />
+          </>
+        )}
 
-        <button className="btn-primary" style={{ marginTop: 28 }} onClick={handleStart} disabled={saving || !name.trim()}>
+        <button className="btn-primary" style={{ marginTop: 28 }} onClick={handleStart} disabled={saving || !name.trim() || (!isInvited && !venueName.trim())}>
           {saving ? 'Setting up...' : 'Get started'}
         </button>
       </div>
@@ -970,6 +1031,7 @@ function App() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [welcomeIdx, setWelcomeIdx] = useState(0);
   const [welcomeFade, setWelcomeFade] = useState(true);
+  const [inviteVenueId] = useState(() => new URLSearchParams(window.location.search).get('invite'));
 
   const loadUserData = async (authUser) => {
     const { data: profile } = await supabase
@@ -1108,7 +1170,7 @@ function App() {
       )}
 
       {screen === 'onboarding' && (
-        <Onboarding user={user} onDone={() => loadUserData(user)} />
+        <Onboarding user={user} onDone={() => loadUserData(user)} inviteVenueId={inviteVenueId} />
       )}
 
       {screen === 'staff' && (
