@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/feja-app/static/css/main.4eacd727.css",
-    "main.js": "/feja-app/static/js/main.f366d6bd.js",
+    "main.css": "/feja-app/static/css/main.661a8608.css",
+    "main.js": "/feja-app/static/js/main.fdd158e9.js",
     "static/js/453.4b455ab4.chunk.js": "/feja-app/static/js/453.4b455ab4.chunk.js",
     "static/media/Feja Logov1.png": "/feja-app/static/media/Feja Logov1.8e6bed9a53d2f31b2fea.png",
     "index.html": "/feja-app/index.html",
-    "main.4eacd727.css.map": "/feja-app/static/css/main.4eacd727.css.map",
-    "main.f366d6bd.js.map": "/feja-app/static/js/main.f366d6bd.js.map",
+    "main.661a8608.css.map": "/feja-app/static/css/main.661a8608.css.map",
+    "main.fdd158e9.js.map": "/feja-app/static/js/main.fdd158e9.js.map",
     "453.4b455ab4.chunk.js.map": "/feja-app/static/js/453.4b455ab4.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.4eacd727.css",
-    "static/js/main.f366d6bd.js"
+    "static/css/main.661a8608.css",
+    "static/js/main.fdd158e9.js"
   ]
 }
