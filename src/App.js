@@ -974,7 +974,6 @@ function AdminDashboard({ onSignOut, user, venue }) {
                 <div className="adm-member-actions">
                   {confirmRole === member.id ? (
                     <div className="adm-member-confirm">
-                      <span className="adm-confirm-label">{member.role === 'admin' ? 'Remove admin?' : 'Make admin?'}</span>
                       <button className="adm-confirm-cancel" onClick={() => setConfirmRole(null)}>No</button>
                       <button className="adm-confirm-delete" onClick={() => applyRoleChange(member.id)}>Yes</button>
                     </div>
@@ -1047,11 +1046,13 @@ function Onboarding({ user, onDone, inviteVenueId }) {
   const [name, setName] = useState(user?.user_metadata?.name || '');
   const [venueName, setVenueName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [onbError, setOnbError] = useState('');
 
   const handleStart = async () => {
     if (!name.trim()) return;
     if (!isInvited && !venueName.trim()) return;
     setSaving(true);
+    setOnbError('');
 
     let venueId = inviteVenueId;
     const role = isInvited ? 'staff' : 'admin';
@@ -1059,16 +1060,19 @@ function Onboarding({ user, onDone, inviteVenueId }) {
     if (!isInvited) {
       const trialEnds = new Date();
       trialEnds.setDate(trialEnds.getDate() + 14);
-      const { data: venue } = await supabase
+      const { data: venue, error: venueErr } = await supabase
         .from('venues')
         .insert({ name: venueName.trim(), trial_ends_at: trialEnds.toISOString(), subscription_status: 'trialing' })
         .select()
         .single();
+      if (venueErr) { setOnbError(`Venue error: ${venueErr.message}`); setSaving(false); return; }
       venueId = venue?.id;
     }
 
+    const { error: profileErr } = await supabase.from('profiles').upsert({ id: user.id, name: name.trim(), role, venue_id: venueId });
+    if (profileErr) { setOnbError(`Profile error: ${profileErr.message}`); setSaving(false); return; }
+
     await supabase.auth.updateUser({ data: { name: name.trim(), role } });
-    await supabase.from('profiles').upsert({ id: user.id, name: name.trim(), role, venue_id: venueId });
     setSaving(false);
     onDone();
   };
@@ -1090,6 +1094,7 @@ function Onboarding({ user, onDone, inviteVenueId }) {
           </>
         )}
 
+        {onbError && <p className="auth-error" style={{ marginTop: 12 }}>{onbError}</p>}
         <button className="btn-primary" style={{ marginTop: 28 }} onClick={handleStart} disabled={saving || !name.trim() || (!isInvited && !venueName.trim())}>
           {saving ? 'Setting up...' : 'Get started'}
         </button>
