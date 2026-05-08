@@ -982,9 +982,11 @@ function Onboarding({ user, onDone, inviteVenueId }) {
     const role = isInvited ? 'staff' : 'admin';
 
     if (!isInvited) {
+      const trialEnds = new Date();
+      trialEnds.setDate(trialEnds.getDate() + 14);
       const { data: venue } = await supabase
         .from('venues')
-        .insert({ name: venueName.trim() })
+        .insert({ name: venueName.trim(), trial_ends_at: trialEnds.toISOString(), subscription_status: 'trialing' })
         .select()
         .single();
       venueId = venue?.id;
