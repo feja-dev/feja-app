@@ -1058,6 +1058,7 @@ function Onboarding({ user, onDone, inviteVenueId }) {
     const role = isInvited ? 'staff' : 'admin';
 
     if (!isInvited) {
+      await supabase.auth.refreshSession();
       const trialEnds = new Date();
       trialEnds.setDate(trialEnds.getDate() + 14);
       const { data: venue, error: venueErr } = await supabase
