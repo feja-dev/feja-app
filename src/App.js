@@ -162,9 +162,10 @@ function NumPad({ value, onValue, onDone }) {
   );
 }
 
-function StaffChecklist({ onSignOut, user, venue, hideHeader }) {
+function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSections }) {
+  const sections = propSections && propSections.length > 0 ? propSections : LOG_SECTIONS;
   const [entries, setEntries] = useState({});
-  const [collapsed, setCollapsed] = useState(() => Object.fromEntries(LOG_SECTIONS.map(s => [s.id, true])));
+  const [collapsed, setCollapsed] = useState(() => Object.fromEntries(sections.map(s => [s.id, true])));
   const [logged, setLogged] = useState({});
   const [submitting, setSubmitting] = useState({});
   const [showNote, setShowNote] = useState({});
@@ -612,9 +613,21 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
         <button className="dash-export-btn" onClick={() => setExportOpen(o => !o)}>Export ▾</button>
         {exportOpen && (
           <div className="dash-export-dropdown">
-            <div className="dash-export-item">Email report</div>
-            <div className="dash-export-item">Download PDF</div>
-            <div className="dash-export-item">Download CSV</div>
+            <div className="dash-export-item" onClick={() => {
+              const allLogs = [0,1,2,3,4].flatMap(offset => (logsByDay[offset] || []).map(l => ({ ...l, date: (() => { const d = new Date(); d.setDate(d.getDate() - offset); return d.toLocaleDateString('en-AU'); })() })));
+              if (!allLogs.length) return;
+              const rows = [['Date','Time','Section','Item','Temp (°C)','Result','Logged By']];
+              allLogs.forEach(l => {
+                const section = sections.find(s => s.id === l.sectionId);
+                rows.push([l.date, l.time, section?.title || l.sectionId, l.item, l.temp ?? '', l.result, l.name || l.initials]);
+              });
+              const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+              const a = document.createElement('a');
+              a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+              a.download = `feja-logs-${new Date().toLocaleDateString('en-AU').replace(/\//g,'-')}.csv`;
+              a.click();
+              setExportOpen(false);
+            }}>Download CSV</div>
           </div>
         )}
       </div>
@@ -624,13 +637,8 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
 
 function AdminDashboard({ onSignOut, user, venue }) {
   const [view, setView] = useState('dashboard');
-  const [sections, setSections] = useState(LOG_SECTIONS.map(s => ({ ...s, items: [...s.items], correctiveActions: [...s.correctiveActions] })));
-  const [collapsed, setCollapsed] = useState(() => ({
-    ...Object.fromEntries(LOG_SECTIONS.map(s => [`dash_${s.id}`, true])),
-    ...Object.fromEntries(LOG_SECTIONS.map(s => [s.id, true])),
-    __items__: true,
-    __team__: true,
-  }));
+  const [sections, setSections] = useState([]);
+  const [collapsed, setCollapsed] = useState({ __items__: true, __team__: true });
   const [newItem, setNewItem] = useState({});
   const [newAction, setNewAction] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -742,7 +750,7 @@ function AdminDashboard({ onSignOut, user, venue }) {
       )}
 
       {view === 'log' && (
-        <StaffChecklist onSignOut={onSignOut} user={user} venue={venue} hideHeader />
+        <StaffChecklist onSignOut={onSignOut} user={user} venue={venue} hideHeader sections={sections} />
       )}
 
       {view === 'settings' && (
