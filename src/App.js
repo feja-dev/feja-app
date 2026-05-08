@@ -404,10 +404,45 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
   );
 }
 
+async function downloadCsv(from, to, label, sections, venueId) {
+  let query = supabase
+    .from('logs')
+    .select('*')
+    .gte('logged_at', from.toISOString())
+    .lte('logged_at', to.toISOString())
+    .order('logged_at', { ascending: true });
+  if (venueId) query = query.eq('venue_id', venueId);
+  const { data } = await query;
+  if (!data || !data.length) return;
+  const rows = [['Date', 'Time', 'Section', 'Item', 'Temp (°C)', 'Result', 'Logged By']];
+  data.forEach(log => {
+    const section = sections.find(s => s.id === log.section_id);
+    const date = new Date(log.logged_at);
+    rows.push([
+      date.toLocaleDateString('en-AU'),
+      date.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      section?.title || log.section_id,
+      log.item,
+      log.temp ?? '',
+      log.result,
+      log.user_name || '',
+    ]);
+  });
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = `feja-${label.toLowerCase().replace(/\s+/g, '-')}.csv`;
+  a.click();
+}
+
 function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
   const [openDay, setOpenDay] = useState(0);
   const [openItems, setOpenItems] = useState({});
   const [logsByDay, setLogsByDay] = useState({});
+  const [exportStep, setExportStep] = useState('menu'); // 'menu' | 'custom'
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
+  const [exporting, setExporting] = useState(false);
   const toggleItem = (key) => setOpenItems(p => ({ ...p, [key]: !p[key] }));
   const totalItems = sections.reduce((n, s) => n + s.items.length, 0);
 
@@ -610,24 +645,45 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
       })}
 
       <div className="dash-export-wrap">
-        <button className="dash-export-btn" onClick={() => setExportOpen(o => !o)}>Export ▾</button>
+        <button className="dash-export-btn" onClick={() => { setExportOpen(o => !o); setExportStep('menu'); }}>Download report ▾</button>
         {exportOpen && (
           <div className="dash-export-dropdown">
-            <div className="dash-export-item" onClick={() => {
-              const allLogs = [0,1,2,3,4].flatMap(offset => (logsByDay[offset] || []).map(l => ({ ...l, date: (() => { const d = new Date(); d.setDate(d.getDate() - offset); return d.toLocaleDateString('en-AU'); })() })));
-              if (!allLogs.length) return;
-              const rows = [['Date','Time','Section','Item','Temp (°C)','Result','Logged By']];
-              allLogs.forEach(l => {
-                const section = sections.find(s => s.id === l.sectionId);
-                rows.push([l.date, l.time, section?.title || l.sectionId, l.item, l.temp ?? '', l.result, l.name || l.initials]);
-              });
-              const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-              a.download = `feja-logs-${new Date().toLocaleDateString('en-AU').replace(/\//g,'-')}.csv`;
-              a.click();
-              setExportOpen(false);
-            }}>Download CSV</div>
+            {exportStep === 'menu' && (
+              <>
+                {[{ label: 'Today', days: 0 }, { label: 'Last 7 days', days: 6 }, { label: 'Last 30 days', days: 29 }].map(({ label, days }) => (
+                  <div key={label} className="dash-export-item" onClick={async () => {
+                    setExporting(true);
+                    const from = new Date(); from.setDate(from.getDate() - days); from.setHours(0,0,0,0);
+                    const to = new Date(); to.setHours(23,59,59,999);
+                    await downloadCsv(from, to, label, sections, venueId);
+                    setExporting(false); setExportOpen(false);
+                  }}>{exporting ? 'Downloading...' : label}</div>
+                ))}
+                <div className="dash-export-item" onClick={() => setExportStep('custom')}>Custom range →</div>
+              </>
+            )}
+            {exportStep === 'custom' && (
+              <div className="dash-export-custom">
+                <div className="dash-export-custom-row">
+                  <label className="dash-export-custom-lbl">From</label>
+                  <input className="dash-export-date" type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} />
+                </div>
+                <div className="dash-export-custom-row">
+                  <label className="dash-export-custom-lbl">To</label>
+                  <input className="dash-export-date" type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} />
+                </div>
+                <div className="dash-export-custom-btns">
+                  <button className="dash-export-custom-cancel" onClick={() => setExportStep('menu')}>Back</button>
+                  <button className="dash-export-custom-go" disabled={!customFrom || !customTo || exporting} onClick={async () => {
+                    setExporting(true);
+                    const from = new Date(customFrom); from.setHours(0,0,0,0);
+                    const to = new Date(customTo); to.setHours(23,59,59,999);
+                    await downloadCsv(from, to, `${customFrom}-to-${customTo}`, sections, venueId);
+                    setExporting(false); setExportOpen(false);
+                  }}>{exporting ? 'Downloading...' : 'Download'}</button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

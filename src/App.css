@@ -263,6 +263,14 @@ body { font-family: var(--font); background: var(--tint); }
 .dash-export-item { padding: 13px 16px; font-size: 14px; color: var(--blk); cursor: pointer; }
 .dash-export-item:hover { background: var(--card-surf); }
 .dash-export-item + .dash-export-item { border-top: 1px solid rgba(58,58,58,0.07); }
+.dash-export-custom { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.dash-export-custom-row { display: flex; flex-direction: column; gap: 4px; }
+.dash-export-custom-lbl { font-size: 11px; font-weight: 600; color: var(--gmut); text-transform: uppercase; letter-spacing: 0.05em; }
+.dash-export-date { font-family: var(--font); font-size: 14px; color: var(--blk); border: 1.5px solid rgba(58,58,58,0.15); border-radius: 8px; padding: 7px 10px; width: 100%; box-sizing: border-box; }
+.dash-export-custom-btns { display: flex; gap: 8px; margin-top: 4px; }
+.dash-export-custom-cancel { flex: 1; font-family: var(--font); font-size: 13px; font-weight: 500; color: var(--gmut); background: none; border: 1.5px solid rgba(58,58,58,0.15); border-radius: 20px; padding: 8px; cursor: pointer; }
+.dash-export-custom-go { flex: 2; font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--wht); background: var(--blk); border: none; border-radius: 20px; padding: 8px; cursor: pointer; }
+.dash-export-custom-go:disabled { opacity: 0.4; cursor: default; }
 
 .dash-feed-title { font-size: 16px; font-weight: 500; color: var(--blk); }
 .dash-feed { background: var(--wht); border: 1.5px solid rgba(58,58,58,0.1); border-radius: 14px; overflow: hidden; }
