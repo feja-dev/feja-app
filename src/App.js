@@ -15,9 +15,9 @@ const SECTION_TYPES = {
 
 const LOG_SECTIONS = [
   { id: 'fridge',   title: 'Fridge Temps', type: 'cold',      threshold: { max: 5 },  correctiveActions: ['Moved to working fridge', 'Supervisor notified', 'Repair booked', 'Stock discarded'], items: ['Walk-in Fridge', 'Prep Fridge', 'Display Fridge'] },
-  { id: 'reheating',title: 'Reheating',    type: 'reheating', threshold: { min: 75 }, correctiveActions: ['Reheated again', 'Discarded', 'Supervisor notified'], items: ['Item 1'] },
-  { id: 'serving',  title: 'Hot Holding',  type: 'hot',       threshold: { min: 60 }, correctiveActions: ['Reheated', 'Discarded', 'Supervisor notified'], items: ['Item 1'] },
-  { id: 'delivery', title: 'Delivery',     type: 'delivery',  threshold: { max: 5 },  correctiveActions: ['Delivery rejected', 'Supplier notified', 'Stock discarded'], items: ['Delivery 1'] },
+  { id: 'reheating',title: 'Reheating',    type: 'reheating', threshold: { min: 75 }, correctiveActions: ['Reheated again', 'Discarded', 'Supervisor notified'], items: ['Soup', 'Rice', 'Sauce'] },
+  { id: 'serving',  title: 'Hot Holding',  type: 'hot',       threshold: { min: 60 }, correctiveActions: ['Reheated', 'Discarded', 'Supervisor notified'], items: ['Soup', 'Chicken', 'Vegetables'] },
+  { id: 'delivery', title: 'Delivery',     type: 'delivery',  threshold: { max: 5 },  correctiveActions: ['Delivery rejected', 'Supplier notified', 'Stock discarded'], items: ['Fresh Produce', 'Dairy', 'Meat'] },
 ];
 
 function getResult(threshold, temp) {
@@ -162,7 +162,7 @@ function NumPad({ value, onValue, onDone }) {
   );
 }
 
-function StaffChecklist({ onSignOut, user, venue }) {
+function StaffChecklist({ onSignOut, user, venue, hideHeader }) {
   const [entries, setEntries] = useState({});
   const [collapsed, setCollapsed] = useState(() => Object.fromEntries(LOG_SECTIONS.map(s => [s.id, true])));
   const [logged, setLogged] = useState({});
@@ -222,6 +222,7 @@ function StaffChecklist({ onSignOut, user, venue }) {
         result,
         note: entry.note || null,
         actions: entry.actions,
+        logged_at: new Date().toISOString(),
       });
       setSubmitting(prev => ({ ...prev, [key]: false }));
       if (!error) setLogged(prev => {
@@ -244,18 +245,20 @@ function StaffChecklist({ onSignOut, user, venue }) {
   const timeStr = now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false });
 
   return (
-    <div className="screen app-screen">
-      <div className="app-hdr">
-        <div className="app-hdr-center">
-          <div className="app-logo">fe<span>ja</span>.</div>
-          <div className="hdr-date">{dateStr} · {timeStr}</div>
+    <div className={hideHeader ? undefined : 'screen app-screen'}>
+      {!hideHeader && (
+        <div className="app-hdr">
+          <div className="app-hdr-center">
+            <div className="app-logo">fe<span>ja</span>.</div>
+            <div className="hdr-date">{dateStr} · {timeStr}</div>
+          </div>
+          <div className="app-hdr-bottom">
+            <div className="hdr-name">Hi, {displayName}</div>
+            <span className="hdr-shift">{currentShift} check</span>
+            <button className="signout-pill" onClick={onSignOut}>sign out</button>
+          </div>
         </div>
-        <div className="app-hdr-bottom">
-          <div className="hdr-name">Hi, {displayName}</div>
-          <span className="hdr-shift">{currentShift} check</span>
-          <button className="signout-pill" onClick={onSignOut}>sign out</button>
-        </div>
-      </div>
+      )}
 
       <div className="log-body">
         {LOG_SECTIONS.map((section) => (
@@ -463,7 +466,7 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
 
   return (
     <div className="dash-body">
-      {[0, 1, 2, 3, 4].map(offset => {
+      {[0, 1, 2, 3, 4].filter(offset => offset === 0 || (logsByDay[offset] || []).length > 0).map(offset => {
         const logs = logsByDay[offset] || [];
         const loggedItems = logs.length;
         const pct = Math.round((loggedItems / totalItems) * 100);
@@ -587,9 +590,7 @@ function AdminDashboard({ onSignOut, user, venue }) {
   const [newItem, setNewItem] = useState({});
   const [newAction, setNewAction] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [team, setTeam] = useState([
-    { id: 1, name: 'Nando', email: 'nando@venue.com', role: 'staff' },
-  ]);
+  const [team, setTeam] = useState([]);
   const [newMember, setNewMember] = useState({ name: '', email: '', role: 'staff' });
   const [confirmRemove, setConfirmRemove] = useState(null);
   const [confirmRole, setConfirmRole] = useState(null);
@@ -697,7 +698,7 @@ function AdminDashboard({ onSignOut, user, venue }) {
       )}
 
       {view === 'log' && (
-        <StaffChecklist onSignOut={onSignOut} user={user} venue={venue} />
+        <StaffChecklist onSignOut={onSignOut} user={user} venue={venue} hideHeader />
       )}
 
       {view === 'settings' && (
@@ -1107,7 +1108,7 @@ function App() {
       )}
 
       {screen === 'onboarding' && (
-        <Onboarding user={user} onDone={(role) => setScreen(role === 'admin' ? 'admin' : 'staff')} />
+        <Onboarding user={user} onDone={() => loadUserData(user)} />
       )}
 
       {screen === 'staff' && (
