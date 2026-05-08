@@ -96,8 +96,9 @@ body { font-family: var(--font); background: var(--tint); }
 .app-logo span { color: var(--brand); }
 .hdr-date { font-size: 13px; color: var(--gmut); }
 .hdr-shift { color: var(--brand); font-weight: 600; }
-.app-hdr-bottom { width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
-.app-hdr-bottom .signout-pill { justify-self: end; }
+.app-hdr-bottom { width: 100%; display: flex; align-items: center; gap: 14px; }
+.app-hdr-bottom .hdr-name { flex: 1; }
+.app-hdr-bottom .signout-pill { margin-left: auto; }
 .hdr-name { font-size: 20px; font-weight: 500; color: var(--blk); }
 .signout-pill { font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--brand); background: #fff; border: 1.5px solid var(--brand); border-radius: 20px; padding: 6px 16px; cursor: pointer; }
 .signout-pill:hover { background: var(--brand); color: #fff; }
@@ -258,6 +259,8 @@ body { font-family: var(--font); background: var(--tint); }
 /* ADMIN */
 .adm-settings-btn { font-family: var(--font); font-size: 16px; font-weight: 500; color: var(--brand); background: none; border: none; cursor: pointer; padding: 0; }
 .adm-settings-btn:hover { opacity: 0.75; }
+.adm-nav-btn { font-family: var(--font); font-size: 13px; font-weight: 500; color: var(--gmut); background: none; border: none; cursor: pointer; padding: 4px 0; border-bottom: 2px solid transparent; }
+.adm-nav-btn--on { color: var(--blk); border-bottom-color: var(--brand); }
 
 .adm-body { padding: 0; overflow-y: auto; display: flex; flex-direction: column; flex: 1; }
 .adm-tabs { display: flex; gap: 8px; padding: 16px 16px 0; }
@@ -377,6 +380,19 @@ body { font-family: var(--font); background: var(--tint); }
 .lp-footer-wordmark span { color: var(--brand); }
 .lp-footer-tag { font-size: 13px; color: var(--gmut); margin-bottom: 12px; }
 .lp-footer-contact { font-size: 13px; color: var(--brand); text-decoration: none; }
+
+/* ONBOARDING */
+.onb-screen { padding: 60px 28px 40px; display: flex; flex-direction: column; }
+.onb-logo { font-size: 32px; font-weight: 800; letter-spacing: -1px; color: var(--blk); margin-bottom: 32px; }
+.onb-logo span { color: var(--brand); }
+.onb-title { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; color: var(--blk); margin-bottom: 8px; }
+.onb-sub { font-size: 15px; color: var(--gmut); margin-bottom: 36px; }
+.onb-form { display: flex; flex-direction: column; }
+.onb-role-row { display: flex; gap: 12px; }
+.onb-role-btn { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 16px; border: 1.5px solid rgba(58,58,58,0.15); border-radius: 14px; background: var(--wht); cursor: pointer; text-align: left; transition: border-color 0.15s; }
+.onb-role-btn--on { border-color: var(--brand); background: rgba(232,64,26,0.04); }
+.onb-role-title { font-family: var(--font); font-size: 16px; font-weight: 600; color: var(--blk); }
+.onb-role-desc { font-family: var(--font); font-size: 12px; color: var(--gmut); }
 
 /* NOTE TOGGLE */
 .log-note-row { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }

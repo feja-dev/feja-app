@@ -29,27 +29,26 @@ function getResult(threshold, temp) {
   return 'pass';
 }
 
-function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin }) {
+function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp }) {
   const [showForm, setShowForm] = useState(false);
   const [formName, setFormName] = useState('');
-  const [formCompany, setFormCompany] = useState('');
   const [formEmail, setFormEmail] = useState('');
+  const [formPassword, setFormPassword] = useState('');
   const [formLoading, setFormLoading] = useState(false);
-  const [formDone, setFormDone] = useState(false);
   const [formError, setFormError] = useState('');
 
-  const handleLeadSubmit = async () => {
-    if (!formName.trim() || !formCompany.trim() || !formEmail.trim()) return;
+  const handleSignUp = async () => {
+    if (!formName.trim() || !formEmail.trim() || !formPassword.trim()) return;
     setFormLoading(true);
     setFormError('');
-    const { error } = await supabase.from('leads').insert({
-      name: formName.trim(),
-      company: formCompany.trim(),
+    const { data, error } = await supabase.auth.signUp({
       email: formEmail.trim(),
+      password: formPassword.trim(),
+      options: { data: { name: formName.trim() } },
     });
     setFormLoading(false);
-    if (error) { setFormError('Something went wrong. Try again.'); return; }
-    setFormDone(true);
+    if (error) { setFormError(error.message); return; }
+    if (data?.user) onSignedUp(data.user);
   };
 
   return (
@@ -64,29 +63,22 @@ function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin }) {
         <img src={logo} alt="Feja" className="lp-hero-logo" />
         <h1 className="lp-hero-headline">Kitchen compliance,<br />made simple.</h1>
         <p className="lp-hero-sub">Ditch the paper. Log temps, track corrective actions, and stay audit-ready. Right from your phone.</p>
-        {!showForm && !formDone && (
+        {!showForm && (
           <button className="lp-btn-primary" onClick={() => setShowForm(true)}>
             Start free trial
           </button>
         )}
 
-        {showForm && !formDone && (
+        {showForm && (
           <div className="lp-lead-form">
             <input className="f-input" placeholder="Your name" value={formName} onChange={e => setFormName(e.target.value)} />
-            <input className="f-input" placeholder="Venue / company name" value={formCompany} onChange={e => setFormCompany(e.target.value)} />
-            <input className="f-input" type="email" placeholder="Email address" value={formEmail} onChange={e => setFormEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLeadSubmit()} />
+            <input className="f-input" type="email" placeholder="Email address" value={formEmail} onChange={e => setFormEmail(e.target.value)} />
+            <input className="f-input" type="password" placeholder="Choose a password" value={formPassword} onChange={e => setFormPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSignUp()} />
             {formError && <p className="auth-error">{formError}</p>}
-            <button className="lp-btn-primary" onClick={handleLeadSubmit} disabled={formLoading}>
-              {formLoading ? 'Sending...' : 'Get started'}
+            <button className="lp-btn-primary" onClick={handleSignUp} disabled={formLoading}>
+              {formLoading ? 'Creating account...' : 'Create account'}
             </button>
             <button className="lp-lead-cancel" onClick={() => setShowForm(false)}>Cancel</button>
-          </div>
-        )}
-
-        {formDone && (
-          <div className="lp-lead-success">
-            <p className="lp-lead-success-title">You're on the list.</p>
-            <p className="lp-lead-success-sub">We'll be in touch within 24 hours to get you set up.</p>
           </div>
         )}
 
@@ -684,8 +676,9 @@ function AdminDashboard({ onSignOut, user, venue }) {
           <div className="hdr-date">{dateStr} · {timeStr}</div>
         </div>
         <div className="app-hdr-bottom">
-          <div className="hdr-name">Hi, {displayName}</div>
-          <button className="adm-settings-btn" onClick={() => {
+          <button className={`adm-nav-btn ${view === 'dashboard' ? 'adm-nav-btn--on' : ''}`} onClick={() => setView('dashboard')}>Dashboard</button>
+          <button className={`adm-nav-btn ${view === 'log' ? 'adm-nav-btn--on' : ''}`} onClick={() => setView('log')}>Log</button>
+          <button className={`adm-nav-btn ${view === 'settings' ? 'adm-nav-btn--on' : ''}`} onClick={() => {
             if (view !== 'settings') {
               setCollapsed(p => {
                 const next = { ...p };
@@ -694,15 +687,17 @@ function AdminDashboard({ onSignOut, user, venue }) {
               });
             }
             setView(v => v === 'settings' ? 'dashboard' : 'settings');
-          }}>
-            {view === 'settings' ? 'Close' : 'Settings'}
-          </button>
+          }}>Settings</button>
           <button className="signout-pill" onClick={onSignOut}>sign out</button>
         </div>
       </div>
 
       {view === 'dashboard' && (
         <DashboardView sections={sections} exportOpen={exportOpen} setExportOpen={setExportOpen} venueId={venue?.id} />
+      )}
+
+      {view === 'log' && (
+        <StaffChecklist onSignOut={onSignOut} user={user} venue={venue} />
       )}
 
       {view === 'settings' && (
@@ -920,6 +915,50 @@ const WELCOME_PHRASES = [
   { text: '欢迎回来',               pronunciation: 'hwahn-ying hway-lye' },
 ];
 
+function Onboarding({ user, onDone }) {
+  const [name, setName] = useState(user?.user_metadata?.name || '');
+  const [role, setRole] = useState('staff');
+  const [saving, setSaving] = useState(false);
+
+  const handleStart = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    await supabase.auth.updateUser({ data: { name: name.trim(), role } });
+    await supabase.from('profiles').upsert({ id: user.id, name: name.trim(), role });
+    setSaving(false);
+    onDone(role);
+  };
+
+  return (
+    <div className="screen onb-screen">
+      <div className="onb-logo">fe<span>ja</span>.</div>
+      <h1 className="onb-title">Welcome to Feja</h1>
+      <p className="onb-sub">Quick setup before you get started.</p>
+
+      <div className="onb-form">
+        <label className="f-lbl">Your name</label>
+        <input className="f-input" placeholder="e.g. Jaye" value={name} onChange={e => setName(e.target.value)} />
+
+        <label className="f-lbl" style={{ marginTop: 20 }}>Your role</label>
+        <div className="onb-role-row">
+          <button className={`onb-role-btn ${role === 'staff' ? 'onb-role-btn--on' : ''}`} onClick={() => setRole('staff')}>
+            <span className="onb-role-title">Staff</span>
+            <span className="onb-role-desc">Log temps and checks</span>
+          </button>
+          <button className={`onb-role-btn ${role === 'admin' ? 'onb-role-btn--on' : ''}`} onClick={() => setRole('admin')}>
+            <span className="onb-role-title">Admin</span>
+            <span className="onb-role-desc">Dashboard and settings</span>
+          </button>
+        </div>
+
+        <button className="btn-primary" style={{ marginTop: 28 }} onClick={handleStart} disabled={saving || !name.trim()}>
+          {saving ? 'Setting up...' : 'Get started'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [screen, setScreen] = useState(null);
   const [user, setUser] = useState(null);
@@ -941,6 +980,7 @@ function App() {
     if (profile?.venues) setVenue(profile.venues);
 
     const role = profile?.role || authUser.user_metadata?.role;
+    if (!role) { setScreen('onboarding'); return; }
     setScreen(role === 'admin' ? 'admin' : 'staff');
   };
 
@@ -1012,6 +1052,7 @@ function App() {
         onOpenApp={() => setScreen('login')}
         onDemoStaff={() => { setUser(MOCK_USER); setScreen('staff'); }}
         onDemoAdmin={() => { setUser(MOCK_USER); setScreen('admin'); }}
+        onSignedUp={(newUser) => { setUser(newUser); setScreen('onboarding'); }}
       />
     );
   }
@@ -1019,7 +1060,10 @@ function App() {
   return (
     <div className="feja-app">
       {screen === 'linktree' && (
-        <LandingPage onOpenApp={() => setScreen('login')} />
+        <LandingPage
+          onOpenApp={() => setScreen('login')}
+          onSignedUp={(newUser) => { setUser(newUser); setScreen('onboarding'); }}
+        />
       )}
 
       {screen === 'login' && (
@@ -1060,6 +1104,10 @@ function App() {
             </button>
           </div>
         </div>
+      )}
+
+      {screen === 'onboarding' && (
+        <Onboarding user={user} onDone={(role) => setScreen(role === 'admin' ? 'admin' : 'staff')} />
       )}
 
       {screen === 'staff' && (
