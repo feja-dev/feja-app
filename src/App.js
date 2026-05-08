@@ -710,6 +710,17 @@ function AdminDashboard({ onSignOut, user, venue }) {
 
   const displayName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Admin';
 
+  useEffect(() => {
+    if (!venue?.id) return;
+    supabase
+      .from('profiles')
+      .select('id, name, role')
+      .eq('venue_id', venue.id)
+      .then(({ data }) => {
+        if (data?.length) setTeam(data.map(p => ({ id: p.id, name: p.name || 'Unknown', email: '', role: p.role || 'staff' })));
+      });
+  }, [venue?.id]);
+
   const addMember = () => {
     if (!newMember.name.trim() || !newMember.email.trim()) return;
     setTeam(prev => [...prev, { id: Date.now(), ...newMember }]);
