@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import logo from './Feja Logov1.png';
 import supabase from './supabase';
@@ -366,11 +366,11 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
     return 'Night';
   };
 
-  const getShiftKey = () => {
+  const getShiftKey = useCallback(() => {
     const now = new Date();
     const d = now.toLocaleDateString('en-AU');
     return `feja_logged_${d}_${getShift(now)}`;
-  };
+  }, []);
 
   const currentShift = getShift();
 
@@ -383,7 +383,7 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
           setCollapsed(Object.fromEntries(data.sections.map(s => [s.id, true])));
         }
       });
-  }, [venue?.id]);
+  }, [venue?.id, propSections?.length]);
 
   useEffect(() => {
     const stored = localStorage.getItem(getShiftKey());
