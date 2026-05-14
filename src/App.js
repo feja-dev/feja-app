@@ -29,26 +29,190 @@ function getResult(threshold, temp) {
   return 'pass';
 }
 
-function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp }) {
+function LegalModal({ doc, onClose }) {
+  return (
+    <div className="legal-overlay" onClick={onClose}>
+      <div className="legal-modal" onClick={e => e.stopPropagation()}>
+        <div className="legal-modal-top">
+          <div>
+            <span className="legal-doc-label">Legal</span>
+            <h2 className="legal-modal-title">
+              {doc === 'privacy' ? 'Privacy Policy' : doc === 'terms' ? 'Terms & Conditions' : 'Refund Policy'}
+            </h2>
+          </div>
+          <button className="legal-modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="legal-modal-body">
+          {doc === 'privacy' && <PrivacyContent />}
+          {doc === 'terms' && <TermsContent />}
+          {doc === 'refund' && <RefundContent />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PrivacyContent() {
+  return (
+    <>
+      <p className="legal-meta">Last updated: May 2026 · Feja by Jaye · Victoria, Australia</p>
+      <p>Feja ("we", "us", "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, store, and share information when you use Feja. We comply with the <strong>Privacy Act 1988 (Cth)</strong> and the Australian Privacy Principles (APPs).</p>
+      <h3>1. Information We Collect</h3>
+      <ul>
+        <li><strong>Account information:</strong> Name, email address, business name, and role.</li>
+        <li><strong>Venue data:</strong> Kitchen or venue name, address, and operating details.</li>
+        <li><strong>Compliance records:</strong> Temperature logs, shift checklists, and food safety records.</li>
+        <li><strong>Billing information:</strong> Processed securely through Stripe. We do not store card details.</li>
+        <li><strong>Usage data:</strong> Log files, device type, browser, IP address, and feature usage.</li>
+      </ul>
+      <h3>2. How We Use Your Information</h3>
+      <ul>
+        <li>To provide and operate the Feja platform.</li>
+        <li>To store and display your food safety compliance records.</li>
+        <li>To process subscription payments via Stripe.</li>
+        <li>To send transactional emails (account verification, receipts).</li>
+        <li>To improve the platform through anonymised usage analytics.</li>
+      </ul>
+      <h3>3. Data Storage and Security</h3>
+      <p>Your data is stored in Supabase on secure cloud infrastructure. We use Row-Level Security (RLS) to ensure each venue can only access its own data. Data is encrypted in transit (TLS) and at rest.</p>
+      <h3>4. Data Sharing</h3>
+      <p>We do not sell your personal information. We share data only with trusted providers needed to operate Feja: <strong>Stripe</strong> (payments), <strong>Supabase</strong> (database and auth), and email providers (transactional comms).</p>
+      <h3>5. Data Retention</h3>
+      <p>We retain your data while your subscription is active and for up to 7 years after account closure to comply with FSANZ Standard 3.2.2A Australian food safety record-keeping requirements.</p>
+      <h3>6. Your Rights</h3>
+      <p>Under the Privacy Act 1988, you have the right to access, correct, or request deletion of your personal information, and to opt out of marketing communications at any time.</p>
+      <h3>7. Changes to This Policy</h3>
+      <p>We may update this policy from time to time and will notify you of material changes via email or in-app notice.</p>
+      <h3>8. Contact</h3>
+      <div className="legal-contact-box">
+        <p><strong>Email:</strong> hello@feja.com.au</p>
+        <p><strong>Location:</strong> Victoria, Australia</p>
+      </div>
+    </>
+  );
+}
+
+function TermsContent() {
+  return (
+    <>
+      <p className="legal-meta">Last updated: May 2026 · Feja by Jaye · Victoria, Australia</p>
+      <p>These Terms and Conditions govern your access to and use of the Feja platform. By creating an account or using Feja, you agree to be bound by these Terms.</p>
+      <div className="legal-highlight-box">
+        <p><strong>Important:</strong> Feja is a record-keeping tool. It does not guarantee compliance with any food safety legislation. It is your responsibility to ensure your business meets all applicable legal requirements.</p>
+      </div>
+      <h3>1. About Feja</h3>
+      <p>Feja is a food safety and kitchen compliance platform for commercial kitchens. Operated by Jaye, Victoria, Australia.</p>
+      <h3>2. Eligibility</h3>
+      <p>You must be at least 18 years old and have authority to bind your business to these Terms. Feja is intended for commercial food businesses operating in Australia.</p>
+      <h3>3. Accounts and Access</h3>
+      <p>You are responsible for maintaining the confidentiality of your login credentials and all activity under your account, including ensuring your staff comply with these Terms.</p>
+      <h3>4. Subscription and Billing</h3>
+      <ul>
+        <li>$30 AUD per venue per month (plus GST where applicable).</li>
+        <li>14-day free trial for new venues — no credit card required to start.</li>
+        <li>Billing begins at the end of the trial. Cancel before then to avoid charges.</li>
+        <li>Payments processed via Stripe. Subscriptions renew automatically each month.</li>
+        <li>Cancel any time from account settings — takes effect at end of the current billing period.</li>
+        <li>We reserve the right to change pricing with 30 days' notice to existing subscribers.</li>
+      </ul>
+      <h3>5. Acceptable Use</h3>
+      <p>You agree not to use Feja for any unlawful purpose, attempt to access other venues' data, reverse engineer any part of the service, misrepresent compliance records, or resell access to the platform.</p>
+      <h3>6. Your Data</h3>
+      <p>You own the compliance data you enter into Feja. We recommend regular exports for your own backup. Feja is not liable for data loss caused by factors outside our reasonable control.</p>
+      <h3>7. Limitation of Liability</h3>
+      <p>To the maximum extent permitted by Australian law, our total liability for any claim will not exceed the total amount you paid us in the 3 months preceding the claim.</p>
+      <h3>8. Termination</h3>
+      <p>We may suspend or terminate your account if you breach these Terms or fail to pay. Upon termination, data is retained for up to 7 years per FSANZ requirements then deleted.</p>
+      <h3>9. Governing Law</h3>
+      <p>These Terms are governed by the laws of Victoria, Australia.</p>
+      <h3>10. Contact</h3>
+      <div className="legal-contact-box">
+        <p><strong>Email:</strong> hello@feja.com.au</p>
+        <p><strong>Location:</strong> Victoria, Australia</p>
+      </div>
+    </>
+  );
+}
+
+function RefundContent() {
+  return (
+    <>
+      <p className="legal-meta">Last updated: May 2026 · Feja by Jaye · Victoria, Australia</p>
+      <p>We want you to be satisfied with Feja. This policy explains when refunds are available and how to request one.</p>
+      <div className="legal-summary-grid">
+        <div className="legal-summary-card legal-card-green"><div className="legal-card-label">Free Trial</div><div className="legal-card-value">14 days, no charge</div></div>
+        <div className="legal-summary-card legal-card-green"><div className="legal-card-label">Cancellation</div><div className="legal-card-value">Any time, no penalty</div></div>
+        <div className="legal-summary-card legal-card-amber"><div className="legal-card-label">Refund Window</div><div className="legal-card-value">7 days from charge</div></div>
+        <div className="legal-summary-card legal-card-amber"><div className="legal-card-label">Partial Refunds</div><div className="legal-card-value">Case by case</div></div>
+      </div>
+      <h3>1. Free Trial</h3>
+      <p>All new venues receive a 14-day free trial. You will not be charged during this period. Cancel before it ends and no payment will be taken.</p>
+      <h3>2. Cancellation</h3>
+      <p>Cancel at any time from account settings. Takes effect at the end of your current billing period — no charge for the following period.</p>
+      <h3>3. Refund Eligibility</h3>
+      <ul>
+        <li><strong>Within 7 days of your first paid charge:</strong> Contact us and we'll issue a full refund, no questions asked.</li>
+        <li><strong>Billing errors:</strong> Incorrect charges (e.g. charged twice, charged after cancellation) will be refunded in full.</li>
+        <li><strong>Extended outages:</strong> Verified outages over 48 consecutive hours may be eligible for a pro-rata credit or refund.</li>
+      </ul>
+      <h3>4. Non-Refundable Circumstances</h3>
+      <ul>
+        <li>Forgetting to cancel before the renewal date.</li>
+        <li>Not using the platform during a billing period.</li>
+        <li>Requests made more than 30 days after a charge.</li>
+      </ul>
+      <p>Circumstances vary — reach out and we'll consider unusual situations case by case.</p>
+      <h3>5. Australian Consumer Law</h3>
+      <p>Nothing in this policy limits your rights under the <strong>Australian Consumer Law (ACL)</strong>. For more information, visit accc.gov.au.</p>
+      <h3>6. How to Request a Refund</h3>
+      <p>Email us with your account email, venue name, date of charge, and reason. We aim to respond within 2 business days. Approved refunds are processed via Stripe and typically appear within 5–10 business days.</p>
+      <h3>7. Contact</h3>
+      <div className="legal-contact-box">
+        <p><strong>Email:</strong> hello@feja.com.au</p>
+        <p><strong>Location:</strong> Victoria, Australia</p>
+      </div>
+    </>
+  );
+}
+
+function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp, inviteVenueId }) {
   const [showForm, setShowForm] = useState(false);
   const [formName, setFormName] = useState('');
+  const [formVenue, setFormVenue] = useState('');
   const [formEmail, setFormEmail] = useState('');
   const [formPassword, setFormPassword] = useState('');
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState('');
+  const [agreed, setAgreed] = useState(false);
+  const [legalDoc, setLegalDoc] = useState(null);
+
+  useEffect(() => {
+    if (inviteVenueId) setShowForm(true);
+  }, [inviteVenueId]);
 
   const handleSignUp = async () => {
-    if (!formName.trim() || !formEmail.trim() || !formPassword.trim()) return;
+    if (!formName.trim() || (!inviteVenueId && !formVenue.trim()) || !formEmail.trim() || !formPassword.trim()) return;
     setFormLoading(true);
     setFormError('');
+    const metadata = inviteVenueId
+      ? { name: formName.trim(), invited_venue_id: inviteVenueId }
+      : { name: formName.trim(), venue_name: formVenue.trim() };
     const { data, error } = await supabase.auth.signUp({
       email: formEmail.trim(),
       password: formPassword.trim(),
-      options: { data: { name: formName.trim() } },
+      options: { data: metadata },
     });
+    if (error) { setFormError(error.message); setFormLoading(false); return; }
+    if (!data?.user) { setFormLoading(false); return; }
+
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: formEmail.trim(),
+      password: formPassword.trim(),
+    });
+    if (signInError) { setFormError(signInError.message); setFormLoading(false); return; }
+
     setFormLoading(false);
-    if (error) { setFormError(error.message); return; }
-    if (data?.user) onSignedUp(data.user);
+    onSignedUp(signInData.user);
   };
 
   return (
@@ -71,12 +235,22 @@ function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp }) {
 
         {showForm && (
           <div className="lp-lead-form">
+            {inviteVenueId ? (
+              <p className="lp-invite-heading">You've been invited to join a team on Feja. Create your account below.</p>
+            ) : (
+              <button className="login-back-btn" onClick={() => setShowForm(false)}>←</button>
+            )}
             <input className="f-input" placeholder="Your name" value={formName} onChange={e => setFormName(e.target.value)} />
+            {!inviteVenueId && <input className="f-input" placeholder="Venue name" value={formVenue} onChange={e => setFormVenue(e.target.value)} />}
             <input className="f-input" type="email" placeholder="Email address" value={formEmail} onChange={e => setFormEmail(e.target.value)} />
-            <input className="f-input" type="password" placeholder="Choose a password" value={formPassword} onChange={e => setFormPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSignUp()} />
+            <input className="f-input" type="password" placeholder="Choose a password" value={formPassword} onChange={e => setFormPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && agreed && handleSignUp()} />
+            <label className="legal-checkbox-row">
+              <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} />
+              <span>I agree to the <button type="button" className="legal-inline-link" onClick={() => setLegalDoc('terms')}>Terms & Conditions</button> and <button type="button" className="legal-inline-link" onClick={() => setLegalDoc('privacy')}>Privacy Policy</button></span>
+            </label>
             {formError && <p className="auth-error">{formError}</p>}
-            <button className="lp-btn-primary" onClick={handleSignUp} disabled={formLoading}>
-              {formLoading ? 'Creating account...' : 'Create account'}
+            <button className="lp-btn-primary" onClick={handleSignUp} disabled={formLoading || !agreed}>
+              {formLoading ? 'Setting up...' : 'Create account'}
             </button>
             <button className="lp-lead-cancel" onClick={() => setShowForm(false)}>Cancel</button>
           </div>
@@ -128,8 +302,16 @@ function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp }) {
           <button className="lp-demo-btn" onClick={onDemoStaff}>Team</button>
           <button className="lp-demo-btn" onClick={onDemoAdmin}>Admin</button>
         </div>
+        <div className="lp-footer-legal">
+          <button className="lp-footer-legal-link" onClick={() => setLegalDoc('terms')}>Terms</button>
+          <span className="lp-footer-legal-sep">·</span>
+          <button className="lp-footer-legal-link" onClick={() => setLegalDoc('privacy')}>Privacy</button>
+          <span className="lp-footer-legal-sep">·</span>
+          <button className="lp-footer-legal-link" onClick={() => setLegalDoc('refund')}>Refunds</button>
+        </div>
       </footer>
 
+      {legalDoc && <LegalModal doc={legalDoc} onClose={() => setLegalDoc(null)} />}
     </div>
   );
 }
@@ -162,8 +344,9 @@ function NumPad({ value, onValue, onDone }) {
   );
 }
 
-function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSections }) {
-  const sections = propSections && propSections.length > 0 ? propSections : LOG_SECTIONS;
+function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSections, onDashboard, onSettings }) {
+  const [loadedSections, setLoadedSections] = useState(null);
+  const sections = propSections?.length > 0 ? propSections : (loadedSections || LOG_SECTIONS);
   const [entries, setEntries] = useState({});
   const [collapsed, setCollapsed] = useState(() => Object.fromEntries(sections.map(s => [s.id, true])));
   const [logged, setLogged] = useState({});
@@ -192,9 +375,20 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
   const currentShift = getShift();
 
   useEffect(() => {
+    if (propSections?.length > 0 || !venue?.id) return;
+    supabase.from('venues').select('sections').eq('id', venue.id).single()
+      .then(({ data }) => {
+        if (data?.sections?.length) {
+          setLoadedSections(data.sections);
+          setCollapsed(Object.fromEntries(data.sections.map(s => [s.id, true])));
+        }
+      });
+  }, [venue?.id]);
+
+  useEffect(() => {
     const stored = localStorage.getItem(getShiftKey());
     if (stored) setLogged(JSON.parse(stored));
-  }, []);
+  }, [getShiftKey]);
 
   const toggleSection = (id) => setCollapsed(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -258,11 +452,17 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
             <span className="hdr-shift">{currentShift} check</span>
             <button className="signout-pill" onClick={onSignOut}>sign out</button>
           </div>
+          {(onDashboard || onSettings) && (
+            <div className="app-hdr-admin-nav">
+              {onDashboard && <button className="adm-nav-btn" onClick={onDashboard}>Dashboard</button>}
+              {onSettings && <button className="adm-nav-btn" onClick={onSettings}>Settings</button>}
+            </div>
+          )}
         </div>
       )}
 
       <div className="log-body">
-        {LOG_SECTIONS.map((section) => (
+        {sections.map((section) => (
           <div key={section.id} className="log-section">
             <div className="log-section-title" onClick={() => toggleSection(section.id)}>
               <span>{section.title}</span>
@@ -477,6 +677,7 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
           const initials = name.split(' ').map(n => n[0] || '').join('').toUpperCase().slice(0, 2) || '?';
           grouped[offset].push({
             time: new Date(log.logged_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false }),
+            hour: new Date(log.logged_at).getHours(),
             sectionId: log.section_id,
             item: log.item,
             result: log.result,
@@ -500,6 +701,9 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
     if (h >= 15 && h < 22) return 'Dinner';
     return 'Night';
   };
+
+  const getShiftForHour = (h) => h >= 5 && h < 11 ? 'Breakfast' : h >= 11 && h < 15 ? 'Lunch' : h >= 15 && h < 22 ? 'Dinner' : 'Night';
+  const [shiftFilters, setShiftFilters] = useState({});
 
   const dayLabel = (offset) => {
     if (offset === 1) return 'Yesterday';
@@ -615,11 +819,27 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
           </div>
           <span className={`log-chevron ${openDay === 0 ? '' : 'log-chevron--up'}`}>›</span>
         </div>
-        {openDay === 0 && (
-          todayLogged === 0
-            ? <div className="dash-empty"><span className="dash-empty-txt">Nothing logged yet — start the {getShift().toLowerCase()} check.</span></div>
-            : renderSections(todayLogs, 0)
-        )}
+        {openDay === 0 && (() => {
+          const withData = [...new Set(todayLogs.map(l => getShiftForHour(l.hour)))];
+          const cur = getShift();
+          const tabs = [...new Set([cur, ...withData])];
+          const sel = shiftFilters[0] !== undefined ? shiftFilters[0] : cur;
+          const filtered = sel === 'all' ? todayLogs : todayLogs.filter(l => getShiftForHour(l.hour) === sel);
+          return (
+            <>
+              <div className="dash-shift-tabs">
+                {tabs.map(s => (
+                  <button key={s} className={`dash-shift-tab${sel === s ? ' dash-shift-tab--active' : ''}`} onClick={e => { e.stopPropagation(); setShiftFilters(p => ({ ...p, 0: s })); }}>{s}</button>
+                ))}
+                {withData.length > 1 && <button className={`dash-shift-tab${sel === 'all' ? ' dash-shift-tab--active' : ''}`} onClick={e => { e.stopPropagation(); setShiftFilters(p => ({ ...p, 0: 'all' })); }}>All</button>}
+              </div>
+              {filtered.length === 0
+                ? <div className="dash-empty"><span className="dash-empty-txt">Nothing logged for {sel} yet.</span></div>
+                : renderSections(filtered, 0)
+              }
+            </>
+          );
+        })()}
       </div>
 
       {[1, 2, 3, 4].filter(offset => (logsByDay[offset] || []).length > 0).map(offset => {
@@ -639,7 +859,24 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
                 <span className={`log-chevron ${isOpen ? '' : 'log-chevron--up'}`}>›</span>
               </div>
             </div>
-            {isOpen && renderSections(logs, offset)}
+            {isOpen && (() => {
+              const dayShifts = [...new Set(logs.map(l => getShiftForHour(l.hour)))];
+              const sel = shiftFilters[offset] !== undefined ? shiftFilters[offset] : (dayShifts.length === 1 ? dayShifts[0] : 'all');
+              const filtered = sel === 'all' ? logs : logs.filter(l => getShiftForHour(l.hour) === sel);
+              return (
+                <>
+                  {dayShifts.length > 1 && (
+                    <div className="dash-shift-tabs">
+                      <button className={`dash-shift-tab${sel === 'all' ? ' dash-shift-tab--active' : ''}`} onClick={e => { e.stopPropagation(); setShiftFilters(p => ({ ...p, [offset]: 'all' })); }}>All</button>
+                      {dayShifts.map(s => (
+                        <button key={s} className={`dash-shift-tab${sel === s ? ' dash-shift-tab--active' : ''}`} onClick={e => { e.stopPropagation(); setShiftFilters(p => ({ ...p, [offset]: s })); }}>{s}</button>
+                      ))}
+                    </div>
+                  )}
+                  {renderSections(filtered, offset)}
+                </>
+              );
+            })()}
           </div>
         );
       })}
@@ -692,8 +929,10 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
 }
 
 function AdminDashboard({ onSignOut, user, venue }) {
-  const [view, setView] = useState('dashboard');
-  const [sections, setSections] = useState([]);
+  const [view, setView] = useState('checklist');
+  const [sections, setSections] = useState(LOG_SECTIONS);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [collapsed, setCollapsed] = useState({ __items__: true, __team__: true });
   const [newItem, setNewItem] = useState({});
   const [newAction, setNewAction] = useState({});
@@ -718,6 +957,14 @@ function AdminDashboard({ onSignOut, user, venue }) {
       .eq('venue_id', venue.id)
       .then(({ data }) => {
         if (data?.length) setTeam(data.map(p => ({ id: p.id, name: p.name || 'Unknown', email: '', role: p.role || 'staff' })));
+      });
+    supabase
+      .from('venues')
+      .select('sections')
+      .eq('id', venue.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.sections?.length) setSections(data.sections);
       });
   }, [venue?.id]);
 
@@ -769,55 +1016,88 @@ function AdminDashboard({ onSignOut, user, venue }) {
   const addSection = () => {
     const template = SECTION_TYPES[newSectionType];
     const id = `section_${Date.now()}`;
-    setSections(prev => [...prev, {
+    const newSection = {
       id,
       title: newSectionName.trim() || template.label,
       type: newSectionType,
       threshold: { ...template.threshold },
       correctiveActions: [...template.correctiveActions],
       items: [],
-    }]);
+    };
+    const updated = [...sections, newSection];
+    setSections(updated);
+    saveSectionsData(updated);
     setAddingSection(false);
     setNewSectionName('');
     setNewSectionType('cold');
   };
 
-  const removeSection = (id) => setSections(prev => prev.filter(s => s.id !== id));
+  const removeSection = (id) => {
+    const updated = sections.filter(s => s.id !== id);
+    setSections(updated);
+    saveSectionsData(updated);
+  };
+
+  const saveSectionsData = async (data) => {
+    if (!venue?.id) return;
+    await supabase.from('venues').update({ sections: data }).eq('id', venue.id);
+  };
+
+  const saveSections = async () => {
+    if (!venue?.id) return;
+    setSaving(true);
+    await saveSectionsData(sections);
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-AU', { weekday: 'short', day: '2-digit', month: 'short' });
   const timeStr = now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false });
 
+  const goToSettings = () => {
+    setCollapsed(p => {
+      const next = { ...p };
+      sections.forEach(s => { next[s.id] = true; });
+      return next;
+    });
+    setView('settings');
+  };
+
   return (
     <div className="screen app-screen">
-      <div className="app-hdr">
-        <div className="app-hdr-center">
-          <div className="app-logo">fe<span>ja</span>.</div>
-          <div className="hdr-date">{dateStr} · {timeStr}</div>
+      {view !== 'checklist' && (
+        <div className="app-hdr">
+          <div className="app-hdr-center">
+            <div className="app-logo">fe<span>ja</span>.</div>
+            <div className="hdr-date">{dateStr} · {timeStr}</div>
+          </div>
+          <div className="app-hdr-bottom">
+            <div className="hdr-name">Hi, {displayName}</div>
+            <button className="signout-pill" onClick={onSignOut}>sign out</button>
+          </div>
+          <div className="app-hdr-admin-nav">
+            <button className="adm-nav-btn" onClick={() => setView('checklist')}>← Log</button>
+            <button className={`adm-nav-btn ${view === 'dashboard' ? 'adm-nav-btn--on' : ''}`} onClick={() => setView('dashboard')}>Dashboard</button>
+            <button className={`adm-nav-btn ${view === 'settings' ? 'adm-nav-btn--on' : ''}`} onClick={goToSettings}>Settings</button>
+          </div>
         </div>
-        <div className="app-hdr-bottom">
-          <button className={`adm-nav-btn ${view === 'dashboard' ? 'adm-nav-btn--on' : ''}`} onClick={() => setView('dashboard')}>Dashboard</button>
-          <button className={`adm-nav-btn ${view === 'log' ? 'adm-nav-btn--on' : ''}`} onClick={() => setView('log')}>Log</button>
-          <button className={`adm-nav-btn ${view === 'settings' ? 'adm-nav-btn--on' : ''}`} onClick={() => {
-            if (view !== 'settings') {
-              setCollapsed(p => {
-                const next = { ...p };
-                sections.forEach(s => { next[s.id] = true; });
-                return next;
-              });
-            }
-            setView(v => v === 'settings' ? 'dashboard' : 'settings');
-          }}>Settings</button>
-          <button className="signout-pill" onClick={onSignOut}>sign out</button>
-        </div>
-      </div>
+      )}
+
+      {view === 'checklist' && (
+        <StaffChecklist
+          onSignOut={onSignOut}
+          user={user}
+          venue={venue}
+          sections={sections}
+          onDashboard={() => setView('dashboard')}
+          onSettings={goToSettings}
+        />
+      )}
 
       {view === 'dashboard' && (
         <DashboardView sections={sections} exportOpen={exportOpen} setExportOpen={setExportOpen} venueId={venue?.id} />
-      )}
-
-      {view === 'log' && (
-        <StaffChecklist onSignOut={onSignOut} user={user} venue={venue} hideHeader sections={sections} />
       )}
 
       {view === 'settings' && (
@@ -832,9 +1112,22 @@ function AdminDashboard({ onSignOut, user, venue }) {
           <div className="adm-tab-content">
             {sections.map(section => (
               <div key={section.id} className="adm-card">
-                <div className="adm-card-hdr" onClick={() => toggleSection(section.id)}>
-                  <span className="adm-card-title">{section.title}</span>
-                  <span className={`log-chevron ${collapsed[section.id] ? 'log-chevron--up' : ''}`}>›</span>
+                <div className="adm-card-hdr" onClick={() => confirmDelete !== section.id && toggleSection(section.id)}>
+                  {confirmDelete === section.id ? (
+                    <div className="adm-header-confirm">
+                      <span className="adm-header-confirm-txt">Delete "{section.title}"?</span>
+                      <button className="adm-confirm-cancel" onClick={e => { e.stopPropagation(); setConfirmDelete(null); }}>Cancel</button>
+                      <button className="adm-confirm-delete" onClick={e => { e.stopPropagation(); removeSection(section.id); setConfirmDelete(null); }}>Delete</button>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="adm-card-title">{section.title}</span>
+                      <div className="adm-card-hdr-right">
+                        <button className="adm-card-del-btn" onClick={e => { e.stopPropagation(); setConfirmDelete(section.id); }}>✕</button>
+                        <span className={`log-chevron ${collapsed[section.id] ? 'log-chevron--up' : ''}`}>›</span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {!collapsed[section.id] && (
@@ -911,17 +1204,6 @@ function AdminDashboard({ onSignOut, user, venue }) {
                       <input className="adm-add-input" value={section.title}
                         onChange={e => updateSection(section.id, 'title', e.target.value)}
                       />
-                      {confirmDelete === section.id ? (
-                        <div className="adm-confirm">
-                          <p className="adm-confirm-text">Delete "{section.title}"?</p>
-                          <div className="adm-confirm-btns">
-                            <button className="adm-confirm-cancel" onClick={() => setConfirmDelete(null)}>Cancel</button>
-                            <button className="adm-confirm-delete" onClick={() => { removeSection(section.id); setConfirmDelete(null); }}>Delete</button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button className="adm-delete-section-btn" onClick={() => setConfirmDelete(section.id)}>Delete section</button>
-                      )}
                     </div>
 
                   </div>
@@ -953,6 +1235,9 @@ function AdminDashboard({ onSignOut, user, venue }) {
             ) : (
               <button className="adm-add-section-btn" onClick={() => setAddingSection(true)}>+ Section</button>
             )}
+            <button className="btn-primary adm-save-btn" onClick={saveSections} disabled={saving}>
+              {saved ? 'Saved ✓' : saving ? 'Saving...' : 'Save sections'}
+            </button>
           </div>
         )}
 
@@ -1041,68 +1326,6 @@ const WELCOME_PHRASES = [
   { text: '欢迎回来',               pronunciation: 'hwahn-ying hway-lye' },
 ];
 
-function Onboarding({ user, onDone, inviteVenueId }) {
-  const isInvited = !!inviteVenueId;
-  const [name, setName] = useState(user?.user_metadata?.name || '');
-  const [venueName, setVenueName] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [onbError, setOnbError] = useState('');
-
-  const handleStart = async () => {
-    if (!name.trim()) return;
-    if (!isInvited && !venueName.trim()) return;
-    setSaving(true);
-    setOnbError('');
-
-    let venueId = inviteVenueId;
-    const role = isInvited ? 'staff' : 'admin';
-
-    if (!isInvited) {
-      await supabase.auth.refreshSession();
-      const trialEnds = new Date();
-      trialEnds.setDate(trialEnds.getDate() + 14);
-      const { data: venue, error: venueErr } = await supabase
-        .from('venues')
-        .insert({ name: venueName.trim(), trial_ends_at: trialEnds.toISOString(), subscription_status: 'trialing' })
-        .select()
-        .single();
-      if (venueErr) { setOnbError(`Venue error: ${venueErr.message}`); setSaving(false); return; }
-      venueId = venue?.id;
-    }
-
-    const { error: profileErr } = await supabase.from('profiles').upsert({ id: user.id, name: name.trim(), role, venue_id: venueId });
-    if (profileErr) { setOnbError(`Profile error: ${profileErr.message}`); setSaving(false); return; }
-
-    await supabase.auth.updateUser({ data: { name: name.trim(), role } });
-    setSaving(false);
-    onDone();
-  };
-
-  return (
-    <div className="screen onb-screen">
-      <div className="onb-logo">fe<span>ja</span>.</div>
-      <h1 className="onb-title">{isInvited ? "You're invited" : 'Set up your venue'}</h1>
-      <p className="onb-sub">{isInvited ? 'Create your account to get started.' : 'A couple of details before you dive in.'}</p>
-
-      <div className="onb-form">
-        <label className="f-lbl">Your name</label>
-        <input className="f-input" placeholder="e.g. Jaye" value={name} onChange={e => setName(e.target.value)} />
-
-        {!isInvited && (
-          <>
-            <label className="f-lbl" style={{ marginTop: 20 }}>Venue name</label>
-            <input className="f-input" placeholder="e.g. The Blue Door" value={venueName} onChange={e => setVenueName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleStart()} />
-          </>
-        )}
-
-        {onbError && <p className="auth-error" style={{ marginTop: 12 }}>{onbError}</p>}
-        <button className="btn-primary" style={{ marginTop: 28 }} onClick={handleStart} disabled={saving || !name.trim() || (!isInvited && !venueName.trim())}>
-          {saving ? 'Setting up...' : 'Get started'}
-        </button>
-      </div>
-    </div>
-  );
-}
 
 function App() {
   const [screen, setScreen] = useState(null);
@@ -1114,8 +1337,6 @@ function App() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [welcomeIdx, setWelcomeIdx] = useState(0);
   const [welcomeFade, setWelcomeFade] = useState(true);
-  const [inviteVenueId] = useState(() => new URLSearchParams(window.location.search).get('invite'));
-
   const loadUserData = async (authUser) => {
     const { data: profile } = await supabase
       .from('profiles')
@@ -1126,7 +1347,7 @@ function App() {
     if (profile?.venues) setVenue(profile.venues);
 
     const role = profile?.role || authUser.user_metadata?.role;
-    if (!role) { setScreen('onboarding'); return; }
+    if (!role) { setScreen('login'); return; }
     setScreen(role === 'admin' ? 'admin' : 'staff');
   };
 
@@ -1193,12 +1414,14 @@ function App() {
   }
 
   if (screen === 'linktree') {
+    const inviteVenueId = new URLSearchParams(window.location.search).get('invite');
     return (
       <LandingPage
+        inviteVenueId={inviteVenueId}
         onOpenApp={() => setScreen('login')}
         onDemoStaff={() => { setUser(MOCK_USER); setScreen('staff'); }}
         onDemoAdmin={() => { setUser(MOCK_USER); setScreen('admin'); }}
-        onSignedUp={(newUser) => { setUser(newUser); setScreen('onboarding'); }}
+        onSignedUp={(newUser) => { setUser(newUser); loadUserData(newUser); }}
       />
     );
   }
@@ -1208,7 +1431,7 @@ function App() {
       {screen === 'linktree' && (
         <LandingPage
           onOpenApp={() => setScreen('login')}
-          onSignedUp={(newUser) => { setUser(newUser); setScreen('onboarding'); }}
+          onSignedUp={(newUser) => { setUser(newUser); loadUserData(newUser); }}
         />
       )}
 
@@ -1250,10 +1473,6 @@ function App() {
             </button>
           </div>
         </div>
-      )}
-
-      {screen === 'onboarding' && (
-        <Onboarding user={user} onDone={() => loadUserData(user)} inviteVenueId={inviteVenueId} />
       )}
 
       {screen === 'staff' && (
