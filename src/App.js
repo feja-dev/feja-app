@@ -185,6 +185,7 @@ function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp, inviteVe
   const [formError, setFormError] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null);
+  const [showFormPassword, setShowFormPassword] = useState(false);
 
   useEffect(() => {
     if (inviteVenueId) setShowForm(true);
@@ -243,7 +244,10 @@ function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp, inviteVe
             <input className="f-input" placeholder="Your name" value={formName} onChange={e => setFormName(e.target.value)} />
             {!inviteVenueId && <input className="f-input" placeholder="Venue name" value={formVenue} onChange={e => setFormVenue(e.target.value)} />}
             <input className="f-input" type="email" placeholder="Email address" value={formEmail} onChange={e => setFormEmail(e.target.value)} />
-            <input className="f-input" type="password" placeholder="Choose a password" value={formPassword} onChange={e => setFormPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && agreed && handleSignUp()} />
+            <div className="pw-wrap">
+              <input className="f-input" type={showFormPassword ? 'text' : 'password'} placeholder="Choose a password" value={formPassword} onChange={e => setFormPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && agreed && handleSignUp()} />
+              <button type="button" className="pw-toggle" onClick={() => setShowFormPassword(p => !p)}>{showFormPassword ? '🙈' : '👁'}</button>
+            </div>
             <label className="legal-checkbox-row">
               <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} />
               <span>I agree to the <button type="button" className="legal-inline-link" onClick={() => setLegalDoc('terms')}>Terms & Conditions</button> and <button type="button" className="legal-inline-link" onClick={() => setLegalDoc('privacy')}>Privacy Policy</button></span>
@@ -1335,6 +1339,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [welcomeIdx, setWelcomeIdx] = useState(0);
   const [welcomeFade, setWelcomeFade] = useState(true);
   const loadUserData = async (authUser) => {
@@ -1460,14 +1465,17 @@ function App() {
               onChange={e => setEmail(e.target.value)}
             />
             <label className="f-lbl">Password</label>
-            <input
-              className="f-input"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()}
-            />
+            <div className="pw-wrap">
+              <input
+                className="f-input"
+                type={showLoginPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleLogin()}
+              />
+              <button type="button" className="pw-toggle" onClick={() => setShowLoginPassword(p => !p)}>{showLoginPassword ? '🙈' : '👁'}</button>
+            </div>
             {authError && <p className="auth-error">{authError}</p>}
             <p className="forgot">Forgot password?</p>
             <button className="btn-primary" onClick={handleLogin} disabled={loginLoading}>
