@@ -467,7 +467,8 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
         logged_at: new Date().toISOString(),
       });
       setSubmitting(prev => ({ ...prev, [key]: false }));
-      if (!error) setLogged(prev => {
+      if (error) { console.error('Log insert error:', error); return; }
+      setLogged(prev => {
         const next = { ...prev, [key]: true };
         localStorage.setItem(getShiftKey(), JSON.stringify(next));
         return next;
@@ -636,11 +637,12 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
           onValue={val => set(numpadKey, 'temp', val)}
           onDone={() => {
             const key = numpadKey;
+            setNumpadKey(null);
             const sectionId = key.split('__')[0];
-            const section = LOG_SECTIONS.find(s => s.id === sectionId);
+            const section = sections.find(s => s.id === sectionId);
+            if (!section) return;
             const entry = entries[key] || { temp: '', note: '', actions: [] };
             const result = getResult(section.threshold, entry.temp);
-            setNumpadKey(null);
             if (result === 'pass') {
               handleLog(key, section, entry);
             }
