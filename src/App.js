@@ -764,8 +764,12 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
   const todayLogs = logsByDay[0] || [];
   const todayLogged = todayLogs.length;
   const todayFails = todayLogs.filter(l => l.result === 'fail').length;
+  const todayRemaining = Math.max(0, totalItems - todayLogged);
   const todayPct = totalItems > 0 ? Math.round((todayLogged / totalItems) * 100) : 0;
   const allDone = totalItems > 0 && todayLogged >= totalItems;
+  const lastLogTime = todayLogs[0]?.time;
+  const summaryStatus = allDone && todayFails === 0 ? 'done' : todayFails > 0 ? 'fail' : todayLogged > 0 ? 'progress' : 'pending';
+  const summaryLabel = { done: 'All clear', fail: 'Action required', progress: 'In progress', pending: 'Not started' }[summaryStatus];
 
   const renderSections = (logs, offset) => (
     <div className="dash-day-body">
@@ -836,27 +840,38 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
   return (
     <div className="dash-body">
 
-      <div className={`dash-summary${allDone && todayFails === 0 ? ' dash-summary--done' : ''}`}>
+      <div className={`dash-summary dash-summary--${summaryStatus}`}>
         <div className="dash-summary-top">
           <span className="dash-summary-shift">{getShift()} shift</span>
-          {todayFails > 0 && <span className="dash-summary-badge">{todayFails} fail{todayFails > 1 ? 's' : ''}</span>}
-          {allDone && todayFails === 0 && <span className="dash-summary-badge dash-summary-badge--done">All clear</span>}
+          <span className={`dash-summary-badge dash-summary-badge--${summaryStatus}`}>{summaryLabel}</span>
         </div>
-        <div className="dash-summary-stat">
-          <span className="dash-summary-num">{todayLogged}</span>
-          <span className="dash-summary-total">/{totalItems}</span>
-          <span className="dash-summary-label">logged today</span>
+        <div className="dash-summary-body">
+          <div className="dash-summary-left">
+            <span className="dash-summary-pct">{todayPct}%</span>
+            <span className="dash-summary-pct-lbl">completed</span>
+          </div>
+          <div className="dash-summary-right">
+            <div className="dash-summary-stat-row">
+              <span className="dash-summary-stat-val">{todayLogged} / {totalItems}</span>
+              <span className="dash-summary-stat-lbl">logged</span>
+            </div>
+            {todayFails > 0 && (
+              <div className="dash-summary-stat-row dash-summary-stat-row--fail">
+                <span className="dash-summary-stat-val">{todayFails}</span>
+                <span className="dash-summary-stat-lbl">failed</span>
+              </div>
+            )}
+            <div className="dash-summary-stat-row">
+              <span className="dash-summary-stat-val">{todayRemaining}</span>
+              <span className="dash-summary-stat-lbl">remaining</span>
+            </div>
+            {lastLogTime && (
+              <div className="dash-summary-lastlog">Last log: {lastLogTime}</div>
+            )}
+          </div>
         </div>
         <div className="dash-summary-bar">
           <div className="dash-summary-fill" style={{ width: `${todayPct}%` }} />
-        </div>
-        <div className="dash-section-pills">
-          {sections.map(section => {
-            const sLogs = todayLogs.filter(l => l.sectionId === section.id);
-            const sFails = sLogs.filter(l => l.result === 'fail').length;
-            const status = sFails > 0 ? 'fail' : sLogs.length === 0 ? 'pending' : sLogs.length < section.items.length ? 'partial' : 'pass';
-            return <span key={section.id} className={`dash-pill dash-pill--${status}`}>{section.title}</span>;
-          })}
         </div>
       </div>
 
