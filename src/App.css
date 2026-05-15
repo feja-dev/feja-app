@@ -327,14 +327,14 @@ body { font-family: var(--font); background: var(--tint); }
 .adm-nav-btn--on { background: var(--blk); color: var(--wht); }
 
 .adm-body { padding: 0; overflow-y: auto; display: flex; flex-direction: column; flex: 1; }
-.adm-tabs { display: flex; gap: 8px; padding: 16px 16px 0; }
+.adm-tabs { display: flex; gap: 8px; padding: 12px 16px 0; }
 .adm-tab { flex: 1; padding: 10px; border-radius: 12px; border: 1.5px solid rgba(58,58,58,0.12); background: var(--wht); color: var(--gmut); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
 .adm-tab--active { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
 .adm-tab-content { padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px; }
 .adm-tab-actions { display: flex; justify-content: flex-end; }
 .adm-card { border: 1.5px solid rgba(58,58,58,0.12); border-radius: 16px; overflow: hidden; background: var(--wht); }
 .adm-card--flat { padding: 16px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; }
-.adm-card-hdr { display: flex; align-items: center; justify-content: space-between; padding: 18px 16px; cursor: pointer; user-select: none; }
+.adm-card-hdr { display: flex; align-items: flex-start; justify-content: space-between; padding: 16px 16px; cursor: pointer; user-select: none; }
 .adm-card-title { font-size: 17px; font-weight: 600; color: var(--blk); flex: 1; }
 .adm-card-hdr-right { display: flex; align-items: center; gap: 10px; }
 .adm-card-del-btn { background: none; border: none; font-size: 16px; color: var(--gmut); cursor: pointer; padding: 4px 6px; line-height: 1; border-radius: 6px; }
@@ -549,3 +549,30 @@ body { font-family: var(--font); background: var(--tint); }
 .dash-attn-cancel { flex: 1; font-family: var(--font); font-size: 13px; font-weight: 500; color: var(--gmut); background: none; border: 1.5px solid rgba(58,58,58,0.15); border-radius: 20px; padding: 9px; cursor: pointer; }
 .dash-attn-save { flex: 2; font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--wht); background: var(--brand); border: none; border-radius: 20px; padding: 9px; cursor: pointer; }
 .dash-attn-save:disabled { opacity: 0.4; cursor: default; }
+
+/* SETTINGS — Updated */
+.adm-card-hdr-left { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.adm-card-hdr .log-chevron { margin-top: 1px; flex-shrink: 0; }
+.adm-card-summary-rule { font-size: 13px; color: var(--gmut); }
+.adm-card-summary-counts { font-size: 12px; color: var(--gmut); }
+.adm-group-helper { font-size: 13px; color: var(--gmut); line-height: 1.45; margin-bottom: 8px; }
+.adm-threshold-block { background: var(--card-surf); border: 1.5px solid rgba(58,58,58,0.1); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.adm-threshold-type-row { display: flex; align-items: center; justify-content: space-between; }
+.adm-threshold-type-val { font-size: 14px; font-weight: 500; color: var(--blk); }
+
+/* TEAM */
+.adm-invite-heading { font-size: 15px; font-weight: 600; color: var(--blk); margin-bottom: 4px; }
+.adm-invite-helper { font-size: 13px; color: var(--gmut); line-height: 1.45; margin-bottom: 10px; }
+.adm-member-name-row { display: flex; align-items: center; gap: 8px; }
+.adm-role-badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; background: var(--card-surf); color: var(--gmut); }
+.adm-role-badge--admin { background: rgba(232,64,26,0.1); color: var(--brand); }
+.adm-remove-text-btn { background: none; border: none; font-family: var(--font); font-size: 13px; color: var(--gmut); cursor: pointer; padding: 4px 0; flex-shrink: 0; }
+.adm-remove-text-btn:hover { color: var(--brand); }
+.adm-role-select { font-family: var(--font); font-size: 15px; color: var(--blk); background: var(--card-surf); border: 1.5px solid rgba(58,58,58,0.15); border-radius: 8px; padding: 10px 13px; width: 100%; outline: none; }
+.adm-role-select:focus { border-color: var(--brand); }
+
+/* SUBSCRIPTION FOOTER CARD */
+.adm-subscription-card { margin: 16px 16px 28px; background: var(--wht); border: 1.5px solid rgba(58,58,58,0.1); border-radius: 16px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.adm-subscription-card-left { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.adm-subscription-card-title { font-size: 14px; font-weight: 600; color: var(--blk); }
+.adm-subscription-card-trial { font-size: 13px; color: var(--gmut); }

@@ -1184,7 +1184,7 @@ function AdminDashboard({ onSignOut, user, venue }) {
   const addMember = () => {
     if (!newMember.name.trim() || !newMember.email.trim()) return;
     setTeam(prev => [...prev, { id: Date.now(), ...newMember }]);
-    setNewMember({ name: '', email: '' });
+    setNewMember({ name: '', email: '', role: 'staff' });
   };
 
   const removeMember = (id) => {
@@ -1319,7 +1319,7 @@ function AdminDashboard({ onSignOut, user, venue }) {
       <div className="adm-body">
 
         <div className="adm-tabs">
-          <button className={`adm-tab ${settingsTab === 'items' ? 'adm-tab--active' : ''}`} onClick={() => setSettingsTab('items')}>Items</button>
+          <button className={`adm-tab ${settingsTab === 'items' ? 'adm-tab--active' : ''}`} onClick={() => setSettingsTab('items')}>Log Items</button>
           <button className={`adm-tab ${settingsTab === 'team' ? 'adm-tab--active' : ''}`} onClick={() => setSettingsTab('team')}>Team</button>
         </div>
 
@@ -1327,57 +1327,92 @@ function AdminDashboard({ onSignOut, user, venue }) {
           <div className="adm-tab-content">
             {sections.map(section => (
               <div key={section.id} className="adm-card">
-                <div className="adm-card-hdr" onClick={() => confirmDelete !== section.id && toggleSection(section.id)}>
-                  {confirmDelete === section.id ? (
-                    <div className="adm-header-confirm">
-                      <span className="adm-header-confirm-txt">Delete "{section.title}"?</span>
-                      <button className="adm-confirm-cancel" onClick={e => { e.stopPropagation(); setConfirmDelete(null); }}>Cancel</button>
-                      <button className="adm-confirm-delete" onClick={e => { e.stopPropagation(); removeSection(section.id); setConfirmDelete(null); }}>Delete</button>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="adm-card-title">{section.title}</span>
-                      <div className="adm-card-hdr-right">
-                        <button className="adm-card-del-btn" onClick={e => { e.stopPropagation(); setConfirmDelete(section.id); }}>✕</button>
-                        <span className={`log-chevron ${collapsed[section.id] ? 'log-chevron--up' : ''}`}>›</span>
-                      </div>
-                    </>
-                  )}
+                <div className="adm-card-hdr" onClick={() => toggleSection(section.id)}>
+                  <div className="adm-card-hdr-left">
+                    <span className="adm-card-title">{section.title}</span>
+                    {collapsed[section.id] && (
+                      <>
+                        <span className="adm-card-summary-rule">
+                          {section.type && section.type !== 'custom'
+                            ? `${SECTION_TYPES[section.type]?.label} · ${section.threshold.max !== undefined ? `Max ${section.threshold.max}°C` : `Min ${section.threshold.min}°C`}`
+                            : [section.threshold.max !== undefined && `Max ${section.threshold.max}°C`, section.threshold.min !== undefined && `Min ${section.threshold.min}°C`].filter(Boolean).join(' · ') || 'Custom'
+                          }
+                        </span>
+                        <span className="adm-card-summary-counts">
+                          {section.items.length} item{section.items.length !== 1 ? 's' : ''} · {section.correctiveActions.length} corrective action{section.correctiveActions.length !== 1 ? 's' : ''}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <span className={`log-chevron ${collapsed[section.id] ? 'log-chevron--up' : ''}`}>›</span>
                 </div>
 
                 {!collapsed[section.id] && (
                   <div className="adm-card-body">
 
-                    {section.type === 'custom' || !section.type ? (
-                      <div className="adm-group">
-                        <div className="adm-group-label">Temperature Threshold</div>
-                        <div className="adm-threshold-row">
-                          <div className="adm-threshold-field">
-                            <span className="adm-threshold-lbl">Min °C</span>
-                            <input className="adm-temp-input" type="number" placeholder="—"
-                              value={section.threshold.min ?? ''}
-                              onChange={e => updateThreshold(section.id, 'min', e.target.value)}
-                            />
-                          </div>
-                          <div className="adm-threshold-field">
-                            <span className="adm-threshold-lbl">Max °C</span>
-                            <input className="adm-temp-input" type="number" placeholder="—"
-                              value={section.threshold.max ?? ''}
-                              onChange={e => updateThreshold(section.id, 'max', e.target.value)}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="adm-group">
-                        <div className="adm-threshold-info">
-                          {SECTION_TYPES[section.type]?.label} &middot; {section.threshold.max !== undefined ? `max ${section.threshold.max}°C` : `min ${section.threshold.min}°C`}
-                        </div>
-                      </div>
-                    )}
+                    <div className="adm-group">
+                      <div className="adm-group-label">Section name</div>
+                      <input className="adm-add-input" value={section.title}
+                        onChange={e => updateSection(section.id, 'title', e.target.value)}
+                      />
+                    </div>
 
                     <div className="adm-group">
-                      <div className="adm-group-label">Items</div>
+                      <div className="adm-group-label">Temperature rule</div>
+                      <div className="adm-threshold-block">
+                        {section.type && section.type !== 'custom' && (
+                          <div className="adm-threshold-type-row">
+                            <span className="adm-threshold-lbl">Type</span>
+                            <span className="adm-threshold-type-val">{SECTION_TYPES[section.type]?.label}</span>
+                          </div>
+                        )}
+                        <div className="adm-threshold-row">
+                          {(!section.type || section.type === 'custom') ? (
+                            <>
+                              <div className="adm-threshold-field">
+                                <span className="adm-threshold-lbl">Min °C</span>
+                                <input className="adm-temp-input" type="number" placeholder="—"
+                                  value={section.threshold.min ?? ''}
+                                  onChange={e => updateThreshold(section.id, 'min', e.target.value)}
+                                />
+                              </div>
+                              <div className="adm-threshold-field">
+                                <span className="adm-threshold-lbl">Max °C</span>
+                                <input className="adm-temp-input" type="number" placeholder="—"
+                                  value={section.threshold.max ?? ''}
+                                  onChange={e => updateThreshold(section.id, 'max', e.target.value)}
+                                />
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              {section.threshold.max !== undefined && (
+                                <div className="adm-threshold-field">
+                                  <span className="adm-threshold-lbl">Max temperature</span>
+                                  <input className="adm-temp-input" type="number" placeholder="—"
+                                    value={section.threshold.max ?? ''}
+                                    onChange={e => updateThreshold(section.id, 'max', e.target.value)}
+                                  />
+                                </div>
+                              )}
+                              {section.threshold.min !== undefined && (
+                                <div className="adm-threshold-field">
+                                  <span className="adm-threshold-lbl">Min temperature</span>
+                                  <input className="adm-temp-input" type="number" placeholder="—"
+                                    value={section.threshold.min ?? ''}
+                                    onChange={e => updateThreshold(section.id, 'min', e.target.value)}
+                                  />
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="adm-group">
+                      <div className="adm-group-label">Log items</div>
+                      <div className="adm-group-helper">These are the items your team will check during this section.</div>
                       {section.items.map((item, idx) => (
                         <div key={idx} className="adm-list-row">
                           <span className="adm-list-item">{item}</span>
@@ -1385,17 +1420,18 @@ function AdminDashboard({ onSignOut, user, venue }) {
                         </div>
                       ))}
                       <div className="adm-add-row">
-                        <input className="adm-add-input" placeholder="Add item..."
+                        <input className="adm-add-input" placeholder="New item name..."
                           value={newItem[section.id] || ''}
                           onChange={e => setNewItem(p => ({ ...p, [section.id]: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && addItem(section.id)}
                         />
-                        <button className="adm-add-btn" onClick={() => addItem(section.id)}>Add</button>
+                        <button className="adm-add-btn" onClick={() => addItem(section.id)}>Add item</button>
                       </div>
                     </div>
 
                     <div className="adm-group">
-                      <div className="adm-group-label">Corrective Actions</div>
+                      <div className="adm-group-label">Corrective actions</div>
+                      <div className="adm-group-helper">Staff can select these when a temperature reading fails.</div>
                       <div className="adm-chips">
                         {section.correctiveActions.map((action, idx) => (
                           <div key={idx} className="adm-chip">
@@ -1405,21 +1441,26 @@ function AdminDashboard({ onSignOut, user, venue }) {
                         ))}
                       </div>
                       <div className="adm-add-row">
-                        <input className="adm-add-input" placeholder="Add action..."
+                        <input className="adm-add-input" placeholder="New action..."
                           value={newAction[section.id] || ''}
                           onChange={e => setNewAction(p => ({ ...p, [section.id]: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && addAction(section.id)}
                         />
-                        <button className="adm-add-btn" onClick={() => addAction(section.id)}>Add</button>
+                        <button className="adm-add-btn" onClick={() => addAction(section.id)}>Add action</button>
                       </div>
                     </div>
 
-                    <div className="adm-group">
-                      <div className="adm-group-label">Section Name</div>
-                      <input className="adm-add-input" value={section.title}
-                        onChange={e => updateSection(section.id, 'title', e.target.value)}
-                      />
-                    </div>
+                    {confirmDelete === section.id ? (
+                      <div className="adm-confirm">
+                        <div className="adm-confirm-text">Delete this section? This will remove the section, its log items and corrective actions.</div>
+                        <div className="adm-confirm-btns">
+                          <button className="adm-confirm-cancel" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                          <button className="adm-confirm-delete" onClick={() => { removeSection(section.id); setConfirmDelete(null); }}>Delete</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button className="adm-delete-section-btn" onClick={() => setConfirmDelete(section.id)}>Delete section</button>
+                    )}
 
                   </div>
                 )}
@@ -1448,7 +1489,7 @@ function AdminDashboard({ onSignOut, user, venue }) {
                 </div>
               </div>
             ) : (
-              <button className="adm-add-section-btn" onClick={() => setAddingSection(true)}>+ Section</button>
+              <button className="adm-add-section-btn" onClick={() => setAddingSection(true)}>+ Add section</button>
             )}
           </div>
         )}
@@ -1457,65 +1498,78 @@ function AdminDashboard({ onSignOut, user, venue }) {
           <div className="adm-tab-content">
             {venue?.id && (
               <div className="adm-invite-box">
-                <div className="adm-invite-label">Invite link</div>
+                <div className="adm-invite-heading">Invite team members</div>
+                <div className="adm-invite-helper">Share this link with staff so they can join your workplace.</div>
                 <div className="adm-invite-url">{`${window.location.origin}${window.location.pathname}?invite=${venue.id}`}</div>
-                <button className="adm-invite-copy" onClick={() => navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?invite=${venue.id}`)}>Copy</button>
+                <button className="adm-invite-copy" onClick={() => navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?invite=${venue.id}`)}>Copy invite link</button>
               </div>
             )}
             {team.map(member => (
               <div key={member.id} className="adm-card adm-card--flat">
                 <div className="adm-member-info">
-                  <div className="adm-member-name">{member.name}</div>
-                  <div className="adm-member-email">{member.email}</div>
+                  <div className="adm-member-name-row">
+                    <span className="adm-member-name">{member.name}</span>
+                    <span className={`adm-role-badge ${member.role === 'admin' ? 'adm-role-badge--admin' : ''}`}>
+                      {member.role === 'admin' ? 'Admin' : 'Staff'}
+                    </span>
+                  </div>
+                  {member.email && <div className="adm-member-email">{member.email}</div>}
                 </div>
                 <div className="adm-member-actions">
-                  {confirmRole === member.id ? (
-                    <div className="adm-member-confirm">
-                      <button className="adm-confirm-cancel" onClick={() => setConfirmRole(null)}>No</button>
-                      <button className="adm-confirm-delete" onClick={() => applyRoleChange(member.id)}>Yes</button>
-                    </div>
-                  ) : (
-                    <button className={`adm-role-pill ${member.role === 'admin' ? 'adm-role-pill--admin' : ''}`} onClick={() => confirmAndToggleRole(member.id)}>
-                      {member.role === 'admin' ? 'Admin' : 'Staff'}
-                    </button>
-                  )}
                   {confirmRemove === member.id ? (
                     <div className="adm-member-confirm">
-                      <button className="adm-confirm-cancel" onClick={() => setConfirmRemove(null)}>Cancel</button>
-                      <button className="adm-confirm-delete" onClick={() => removeMember(member.id)}>Remove</button>
+                      <span className="adm-confirm-label">Remove?</span>
+                      <button className="adm-confirm-cancel" onClick={() => setConfirmRemove(null)}>No</button>
+                      <button className="adm-confirm-delete" onClick={() => removeMember(member.id)}>Yes</button>
                     </div>
                   ) : (
-                    <button className="adm-remove-btn" onClick={() => setConfirmRemove(member.id)}>✕</button>
+                    <button className="adm-remove-text-btn" onClick={() => setConfirmRemove(member.id)}>Remove</button>
                   )}
                 </div>
               </div>
             ))}
-
-            <div className="adm-card adm-card--flat">
-              <div className="adm-member-info">
-                <input className="adm-add-input" placeholder="Name" value={newMember.name}
+            <div className="adm-card">
+              <div className="adm-card-body">
+                <div className="adm-group-label">Add team member</div>
+                <input className="adm-add-input" placeholder="Name"
+                  value={newMember.name}
                   onChange={e => setNewMember(p => ({ ...p, name: e.target.value }))}
                 />
-                <input className="adm-add-input" placeholder="Email" type="email" value={newMember.email}
+                <input className="adm-add-input" placeholder="Email" type="email"
                   style={{ marginTop: 8 }}
+                  value={newMember.email}
                   onChange={e => setNewMember(p => ({ ...p, email: e.target.value }))}
                   onKeyDown={e => e.key === 'Enter' && addMember()}
                 />
-              </div>
-              <div className="adm-member-add-right">
-                <button
-                  className={`adm-role-pill ${newMember.role === 'admin' ? 'adm-role-pill--admin' : ''}`}
-                  onClick={() => setNewMember(p => ({ ...p, role: p.role === 'admin' ? 'staff' : 'admin' }))}
-                >
-                  {newMember.role === 'admin' ? 'Admin' : 'Staff'}
-                </button>
-                <button className="adm-add-btn" onClick={addMember}>Add</button>
+                <div style={{ marginTop: 8 }}>
+                  <div className="adm-group-label" style={{ marginBottom: 6 }}>Role</div>
+                  <select className="adm-role-select"
+                    value={newMember.role}
+                    onChange={e => setNewMember(p => ({ ...p, role: e.target.value }))}>
+                    <option value="staff">Staff</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <button className="adm-add-section-btn" style={{ marginTop: 14, width: '100%', textAlign: 'center' }}
+                  onClick={addMember}>Add team member</button>
               </div>
             </div>
           </div>
         )}
 
-        <div className="adm-subscription-row">
+        <div className="adm-subscription-card">
+          <div className="adm-subscription-card-left">
+            <div className="adm-subscription-card-title">Subscription</div>
+            <div className="adm-subscription-card-trial">
+              {trialMsLeft !== null
+                ? trialMsLeft === 0
+                  ? 'Trial expired.'
+                  : trialDays > 0
+                    ? `${trialDays}d ${trialHours}h left on your trial.`
+                    : `${trialHours}h left on your trial.`
+                : 'Manage your subscription below.'}
+            </div>
+          </div>
           <button className="adm-subscription-btn">Manage subscription</button>
         </div>
 
