@@ -1030,7 +1030,7 @@ function AdminDashboard({ onSignOut, user, venue }) {
       supabase.from('venues').update({ sections }).eq('id', venue.id);
     }, 800);
     return () => clearTimeout(t);
-  }, [sections]);
+  }, [sections, venue?.id]);
 
   const addMember = () => {
     if (!newMember.name.trim() || !newMember.email.trim()) return;
@@ -1100,10 +1100,6 @@ function AdminDashboard({ onSignOut, user, venue }) {
     setSections(updated);
   };
 
-  const saveSectionsData = async (data) => {
-    if (!venue?.id) return;
-    await supabase.from('venues').update({ sections: data }).eq('id', venue.id);
-  };
 
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-AU', { weekday: 'short', day: '2-digit', month: 'short' });
