@@ -789,11 +789,12 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
             <div className="dash-section-body">
               {section.items.map((item, i) => {
                 const log = sectionLogs.find(l => l.item === item);
+                const isFail = log?.result === 'fail';
                 const itemKey = `${offset}-${section.id}-${i}`;
                 const itemOpen = openItems[itemKey];
                 return (
-                  <div key={i} className="dash-item">
-                    <div className="dash-item-hdr" onClick={() => toggleItem(itemKey)}>
+                  <div key={i} className={`dash-item${isFail ? ' dash-item--fail' : ''}`}>
+                    <div className="dash-item-hdr" onClick={() => isFail && toggleItem(itemKey)} style={{ cursor: isFail ? 'pointer' : 'default' }}>
                       <span className="dash-item-name">{item}</span>
                       {log
                         ? <span className={`dash-item-temp dash-item-temp--${log.result}`}>{log.temp}°C</span>
@@ -801,30 +802,26 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
                       }
                       <span className="dash-item-time">{log ? log.time : ''}</span>
                       <div className={`dash-item-initials ${log ? '' : 'dash-item-initials--empty'}`}>{log ? log.initials : ''}</div>
-                      <span className={`log-chevron dash-item-chevron ${itemOpen ? '' : 'log-chevron--up'}`}>›</span>
+                      <span className={`dash-item-result dash-item-result--${log?.result || 'pending'}`}>
+                        {log ? (log.result === 'pass' ? 'Pass' : 'Fail') : '—'}
+                      </span>
+                      <span className={`log-chevron dash-item-chevron${isFail ? '' : ' dash-item-chevron--hidden'} ${itemOpen ? '' : 'log-chevron--up'}`}>›</span>
                     </div>
-                    {itemOpen && (
-                      <div className="dash-item-body">
-                        {log ? (
-                          <>
-                            <div className="dash-item-detail">
-                              <span className="dash-item-detail-lbl">Temperature</span>
-                              <span className={`dash-item-detail-val dash-item-temp--${log.result}`}>{log.temp}°C · {log.result === 'pass' ? 'Pass' : 'Fail'}</span>
-                            </div>
-                            <div className="dash-item-detail">
-                              <span className="dash-item-detail-lbl">Logged at</span>
-                              <span className="dash-item-detail-val">{log.time}</span>
-                            </div>
-                            <div className="dash-item-detail">
-                              <span className="dash-item-detail-lbl">Logged by</span>
-                              <span className="dash-item-detail-val">{log.name || log.initials}</span>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="dash-item-empty">
-                            <span className="dash-item-empty-txt">No entry recorded</span>
-                          </div>
-                        )}
+                    {isFail && itemOpen && (
+                      <div className="dash-item-body dash-item-body--fail">
+                        <div className="dash-item-action-label">Action required</div>
+                        <div className="dash-item-detail">
+                          <span className="dash-item-detail-lbl">Logged by</span>
+                          <span className="dash-item-detail-val">{log.name || log.initials}</span>
+                        </div>
+                        <div className="dash-item-detail">
+                          <span className="dash-item-detail-lbl">Temperature</span>
+                          <span className="dash-item-detail-val dash-item-temp--fail">{log.temp}°C</span>
+                        </div>
+                        <div className="dash-item-detail">
+                          <span className="dash-item-detail-lbl">Logged at</span>
+                          <span className="dash-item-detail-val">{log.time}</span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -879,7 +876,7 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
         <div className="dash-day-hdr" onClick={() => setOpenDay(openDay === 0 ? -1 : 0)}>
           <div className="dash-day-hdr-left">
             <div className="dash-day-label">Today's log</div>
-            <div className="dash-day-meta">{todayLogged === 0 ? 'No entries yet' : `${todayLogged}/${totalItems} items logged`}</div>
+            <div className="dash-day-meta">{todayLogged === 0 ? 'No entries yet' : `${todayLogged} of ${totalItems} items logged`}</div>
           </div>
           <span className={`log-chevron ${openDay === 0 ? '' : 'log-chevron--up'}`}>›</span>
         </div>

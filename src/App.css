@@ -219,9 +219,9 @@ body { font-family: var(--font); background: var(--tint); }
 .dash-day-meta { font-size: 13px; color: var(--gmut); }
 .dash-day-hdr-right { display: flex; align-items: center; gap: 10px; }
 .dash-day-body { border-top: 1px solid rgba(58,58,58,0.08); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-.dash-shift-tabs { display: flex; gap: 6px; padding: 12px 16px 0; border-top: 1px solid rgba(58,58,58,0.08); }
-.dash-shift-tab { font-family: var(--font); font-size: 13px; font-weight: 500; color: var(--gmut); background: rgba(58,58,58,0.06); border: none; border-radius: 20px; padding: 6px 14px; cursor: pointer; transition: all 0.15s ease; }
-.dash-shift-tab--active { background: var(--blk); color: var(--wht); }
+.dash-shift-tabs { display: flex; gap: 6px; padding: 12px 16px 4px; border-top: 1px solid rgba(58,58,58,0.08); flex-wrap: wrap; }
+.dash-shift-tab { font-family: var(--font); font-size: 13px; font-weight: 500; color: var(--gmut); background: rgba(58,58,58,0.06); border: 1.5px solid transparent; border-radius: 20px; padding: 5px 14px; cursor: pointer; transition: all 0.15s ease; }
+.dash-shift-tab--active { background: transparent; color: var(--blk); border-color: var(--blk); }
 .dash-section-hdr-simple { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
 .dash-feed-title { font-size: 16px; font-weight: 500; color: var(--blk); }
 
@@ -254,19 +254,27 @@ body { font-family: var(--font); background: var(--tint); }
 
 .dash-item { border-bottom: 1px solid rgba(58,58,58,0.06); }
 .dash-item:last-child { border-bottom: none; }
+.dash-item--fail { background: rgba(232,64,26,0.05); }
 
-.dash-item-hdr { display: grid; grid-template-columns: 1fr 64px 44px 30px 18px; align-items: center; gap: 6px; padding: 13px 14px 13px 18px; cursor: pointer; user-select: none; }
-.dash-item-name { font-size: 15px; color: var(--blk); }
-.dash-item-temp { font-size: 15px; font-weight: 500; text-align: left; }
+.dash-item-hdr { display: grid; grid-template-columns: 1fr 64px 44px 30px 42px 18px; align-items: center; gap: 6px; padding: 12px 14px 12px 16px; user-select: none; }
+.dash-item-name { font-size: 14px; color: var(--blk); }
+.dash-item-temp { font-size: 14px; font-weight: 500; }
 .dash-item-temp--pass { color: var(--grn); }
 .dash-item-temp--fail { color: var(--brand); }
 .dash-item-time { font-size: 12px; color: var(--gmut); text-align: center; }
-.dash-item-pending { font-size: 14px; color: var(--gmut); }
-.dash-item-initials { width: 28px; height: 28px; border-radius: 50%; background: var(--blk); color: var(--wht); font-size: 10px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dash-item-pending { font-size: 14px; color: rgba(58,58,58,0.25); }
+.dash-item-initials { width: 26px; height: 26px; border-radius: 50%; background: var(--blk); color: var(--wht); font-size: 10px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .dash-item-initials--empty { background: transparent; }
+.dash-item-result { font-size: 12px; font-weight: 500; text-align: right; }
+.dash-item-result--pass { color: var(--grn); }
+.dash-item-result--fail { color: var(--brand); }
+.dash-item-result--pending { color: rgba(58,58,58,0.25); }
 .dash-item-chevron { font-size: 16px; justify-self: end; }
+.dash-item-chevron--hidden { opacity: 0; pointer-events: none; }
 
-.dash-item-body { background: var(--tint); padding: 12px 18px 14px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(58,58,58,0.06); }
+.dash-item-body { background: var(--tint); padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(58,58,58,0.06); }
+.dash-item-body--fail { background: rgba(232,64,26,0.07); border-top-color: rgba(232,64,26,0.12); }
+.dash-item-action-label { font-size: 13px; font-weight: 600; color: var(--brand); margin-bottom: 4px; }
 .dash-item-detail { display: flex; justify-content: space-between; align-items: center; }
 .dash-item-detail-lbl { font-size: 13px; color: var(--gmut); }
 .dash-item-detail-val { font-size: 14px; font-weight: 500; color: var(--blk); }
