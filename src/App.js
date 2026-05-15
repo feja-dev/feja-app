@@ -695,6 +695,7 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
   const [openAttention, setOpenAttention] = useState({});
   const [attentionActions, setAttentionActions] = useState({});
   const [savingAction, setSavingAction] = useState({});
+  const [todaySectionId, setTodaySectionId] = useState(null);
   const toggleItem = (key) => setOpenItems(p => ({ ...p, [key]: !p[key] }));
   const totalItems = sections.reduce((n, s) => n + s.items.length, 0);
 
@@ -954,23 +955,86 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
           <span className={`log-chevron ${openDay === 0 ? '' : 'log-chevron--up'}`}>›</span>
         </div>
         {openDay === 0 && (() => {
-          const withData = [...new Set(todayLogs.map(l => getShiftForHour(l.hour)))];
-          const cur = getShift();
-          const tabs = [...new Set([cur, ...withData])];
-          const sel = shiftFilters[0] !== undefined ? shiftFilters[0] : cur;
-          const filtered = sel === 'all' ? todayLogs : todayLogs.filter(l => getShiftForHour(l.hour) === sel);
+          const effectiveId = todaySectionId || sections[0]?.id;
+          const selSection = sections.find(s => s.id === effectiveId);
+          if (!selSection) return null;
+          const sectionLogs = todayLogs.filter(l => l.sectionId === selSection.id);
+          const failedLogs = sectionLogs.filter(l => l.result === 'fail');
+          const pending = selSection.items.length - sectionLogs.length;
+          const hasUnresolved = failedLogs.some(l => !l.actions?.length);
+          const secStatus = failedLogs.length > 0
+            ? (hasUnresolved ? 'action' : 'resolved')
+            : pending === selSection.items.length ? 'pending'
+            : pending === 0 ? 'complete'
+            : 'partial';
+          const secBadge = { complete: 'Complete', pending: 'Pending', action: 'Action required', resolved: 'Resolved', partial: `${sectionLogs.length}/${selSection.items.length}` }[secStatus];
           return (
             <>
               <div className="dash-shift-tabs">
-                {tabs.map(s => (
-                  <button key={s} className={`dash-shift-tab${sel === s ? ' dash-shift-tab--active' : ''}`} onClick={e => { e.stopPropagation(); setShiftFilters(p => ({ ...p, 0: s })); }}>{s}</button>
-                ))}
-                {withData.length > 1 && <button className={`dash-shift-tab${sel === 'all' ? ' dash-shift-tab--active' : ''}`} onClick={e => { e.stopPropagation(); setShiftFilters(p => ({ ...p, 0: 'all' })); }}>All</button>}
+                {sections.map(s => {
+                  const hasFail = todayLogs.some(l => l.sectionId === s.id && l.result === 'fail' && !l.actions?.length);
+                  return (
+                    <button key={s.id}
+                      className={`dash-shift-tab${s.id === effectiveId ? ' dash-shift-tab--active' : ''}${hasFail ? ' dash-shift-tab--fail' : ''}`}
+                      onClick={e => { e.stopPropagation(); setTodaySectionId(s.id); }}>
+                      {s.title}
+                    </button>
+                  );
+                })}
               </div>
-              {filtered.length === 0
-                ? <div className="dash-empty"><span className="dash-empty-txt">Nothing logged for {sel} yet.</span></div>
-                : renderSections(filtered, 0)
-              }
+              <div className="dash-section-view">
+                <div className="dash-section-hdr-simple">
+                  <span className="dash-section-title">{selSection.title}</span>
+                  <span className={`dash-section-badge dash-section-badge--${secStatus}`}>{secBadge}</span>
+                </div>
+                <div className="dash-section-body">
+                  {selSection.items.map((item, i) => {
+                    const log = sectionLogs.find(l => l.item === item);
+                    const isFail = log?.result === 'fail';
+                    const itemKey = `0-${selSection.id}-${i}`;
+                    const itemOpen = openItems[itemKey];
+                    return (
+                      <div key={i} className={`dash-item${isFail ? ' dash-item--fail' : ''}`}>
+                        <div className="dash-item-hdr" onClick={() => isFail && toggleItem(itemKey)} style={{ cursor: isFail ? 'pointer' : 'default' }}>
+                          <span className="dash-item-name">{item}</span>
+                          {log
+                            ? <span className={`dash-item-temp dash-item-temp--${log.result}`}>{log.temp}°C</span>
+                            : <span className="dash-item-pending">—</span>
+                          }
+                          <span className="dash-item-time">{log ? log.time : ''}</span>
+                          <div className={`dash-item-initials ${log ? '' : 'dash-item-initials--empty'}`}>{log ? log.initials : ''}</div>
+                          <span className={`dash-item-result dash-item-result--${log?.result || 'pending'}`}>
+                            {log ? (log.result === 'pass' ? 'Pass' : 'Fail') : '—'}
+                          </span>
+                          <span className={`log-chevron dash-item-chevron${isFail ? '' : ' dash-item-chevron--hidden'} ${itemOpen ? '' : 'log-chevron--up'}`}>›</span>
+                        </div>
+                        {isFail && !itemOpen && (
+                          <div className="dash-item-fail-hint">
+                            {log.actions?.length ? 'Resolved' : 'Action required'}
+                          </div>
+                        )}
+                        {isFail && itemOpen && (
+                          <div className="dash-item-body dash-item-body--fail">
+                            <div className="dash-item-action-label">{log.actions?.length ? 'Resolved' : 'Action required'}</div>
+                            <div className="dash-item-detail">
+                              <span className="dash-item-detail-lbl">Logged by</span>
+                              <span className="dash-item-detail-val">{log.name || log.initials}</span>
+                            </div>
+                            <div className="dash-item-detail">
+                              <span className="dash-item-detail-lbl">Temperature</span>
+                              <span className="dash-item-detail-val dash-item-temp--fail">{log.temp}°C</span>
+                            </div>
+                            <div className="dash-item-detail">
+                              <span className="dash-item-detail-lbl">Logged at</span>
+                              <span className="dash-item-detail-val">{log.time}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </>
           );
         })()}

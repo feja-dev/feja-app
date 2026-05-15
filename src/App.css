@@ -222,7 +222,12 @@ body { font-family: var(--font); background: var(--tint); }
 .dash-shift-tabs { display: flex; gap: 6px; padding: 12px 16px 4px; border-top: 1px solid rgba(58,58,58,0.08); flex-wrap: wrap; }
 .dash-shift-tab { font-family: var(--font); font-size: 13px; font-weight: 500; color: var(--gmut); background: rgba(58,58,58,0.06); border: 1.5px solid transparent; border-radius: 20px; padding: 5px 14px; cursor: pointer; transition: all 0.15s ease; }
 .dash-shift-tab--active { background: transparent; color: var(--blk); border-color: var(--blk); }
+.dash-shift-tab--fail { color: var(--brand); }
+.dash-shift-tab--active.dash-shift-tab--fail { border-color: var(--brand); color: var(--brand); }
 .dash-section-hdr-simple { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
+.dash-section-view .dash-section-hdr-simple { padding: 10px 16px; border-top: 1px solid rgba(58,58,58,0.07); }
+.dash-section-view .dash-section-body { border-top: none; }
+.dash-item-fail-hint { font-size: 12px; font-weight: 500; color: var(--brand); padding: 0 16px 10px; }
 .dash-feed-title { font-size: 16px; font-weight: 500; color: var(--blk); }
 
 .dash-overview { background: var(--wht); border: 1.5px solid rgba(58,58,58,0.1); border-radius: 16px; padding: 18px; }
