@@ -760,6 +760,7 @@
   <script>
     var SUPABASE_URL = 'https://athjsyelayjzlwhooosp.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_09THS0Iru7dtZEP5JZSYIg_e3uxlAr_';
+    var RESEND_KEY = 're_hwsfjq2M_Ceu3cUuQVBwbWKb74LFyn4SR';
 
     function handleSubmit(e) {
       e.preventDefault();
@@ -791,6 +792,11 @@
         document.getElementById('notify-form').style.display = 'none';
         document.getElementById('form-note').style.display = 'none';
         document.getElementById('success-msg').style.display = 'block';
+        fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ from: 'Feja Leads <onboarding@resend.dev>', to: 'jaoli1982@gmail.com', subject: 'New lead: ' + val, html: '<p>New landing page lead: <strong>' + val + '</strong></p>' })
+        }).catch(function() {});
       })
       .catch(function() {
         btn.disabled = false;
