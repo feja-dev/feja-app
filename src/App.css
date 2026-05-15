@@ -235,7 +235,10 @@ body { font-family: var(--font); background: var(--tint); }
 .dash-sections { display: flex; flex-direction: column; gap: 10px; }
 .dash-section { background: var(--wht); border: 1.5px solid rgba(58,58,58,0.1); border-radius: 14px; overflow: hidden; }
 .dash-section--pass { border-color: rgba(31,92,62,0.25); }
+.dash-section--complete { border-color: rgba(31,92,62,0.25); }
+.dash-section--resolved { border-color: rgba(31,92,62,0.2); }
 .dash-section--fail { border-color: rgba(232,64,26,0.25); }
+.dash-section--action { border-color: rgba(232,64,26,0.3); }
 .dash-section-hdr { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; user-select: none; }
 .dash-section-left { display: flex; flex-direction: column; gap: 6px; }
 .dash-section-dots { display: flex; gap: 5px; }
@@ -247,7 +250,10 @@ body { font-family: var(--font); background: var(--tint); }
 .dash-section-right { display: flex; align-items: center; gap: 10px; }
 .dash-section-badge { font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
 .dash-section-badge--pass { background: var(--grn-bg); color: var(--grn); }
+.dash-section-badge--complete { background: var(--grn-bg); color: var(--grn); }
+.dash-section-badge--resolved { background: var(--grn-bg); color: var(--grn); }
 .dash-section-badge--fail { background: rgba(232,64,26,0.1); color: var(--brand); }
+.dash-section-badge--action { background: rgba(232,64,26,0.1); color: var(--brand); font-weight: 600; }
 .dash-section-badge--pending { background: var(--card-surf); color: var(--gmut); }
 .dash-section-badge--partial { background: var(--card-surf); color: var(--blk); }
 .dash-section-body { border-top: 1px solid rgba(58,58,58,0.08); }

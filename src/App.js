@@ -733,6 +733,7 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
             temp: log.temp,
             name,
             initials,
+            actions: log.actions || [],
           });
         }
       });
@@ -775,16 +776,20 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
     <div className="dash-day-body">
       {sections.map(section => {
         const sectionLogs = logs.filter(l => l.sectionId === section.id);
-        const sectionFails = sectionLogs.filter(l => l.result === 'fail').length;
+        const failedLogs = sectionLogs.filter(l => l.result === 'fail');
         const pending = section.items.length - sectionLogs.length;
-        const status = sectionFails > 0 ? 'fail' : pending === section.items.length ? 'pending' : pending === 0 ? 'pass' : 'partial';
+        const hasUnresolved = failedLogs.some(l => !l.actions?.length);
+        const status = failedLogs.length > 0
+          ? (hasUnresolved ? 'action' : 'resolved')
+          : pending === section.items.length ? 'pending'
+          : pending === 0 ? 'complete'
+          : 'partial';
+        const badgeText = { complete: 'Complete', pending: 'Pending', action: 'Action required', resolved: 'Resolved', partial: `${sectionLogs.length}/${section.items.length}` }[status];
         return (
           <div key={section.id} className={`dash-section dash-section--${status}`}>
             <div className="dash-section-hdr-simple">
               <span className="dash-section-title">{section.title}</span>
-              <span className={`dash-section-badge dash-section-badge--${status}`}>
-                {status === 'fail' ? `${sectionFails} fail` : status === 'pass' ? 'All done' : status === 'pending' ? 'Pending' : `${sectionLogs.length}/${section.items.length}`}
-              </span>
+              <span className={`dash-section-badge dash-section-badge--${status}`}>{badgeText}</span>
             </div>
             <div className="dash-section-body">
               {section.items.map((item, i) => {
@@ -809,7 +814,7 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
                     </div>
                     {isFail && itemOpen && (
                       <div className="dash-item-body dash-item-body--fail">
-                        <div className="dash-item-action-label">Action required</div>
+                        <div className="dash-item-action-label">{log.actions?.length ? 'Resolved' : 'Action required'}</div>
                         <div className="dash-item-detail">
                           <span className="dash-item-detail-lbl">Logged by</span>
                           <span className="dash-item-detail-val">{log.name || log.initials}</span>
