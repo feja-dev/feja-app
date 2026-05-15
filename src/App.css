@@ -72,8 +72,8 @@ body { font-family: var(--font); background: var(--tint); }
 .f-lbl { font-size: 12px; font-weight: 500; color: var(--gmut); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; display: block; }
 .f-input { font-family: var(--font); font-size: 16px; color: var(--blk); background: var(--wht); border: 1.5px solid rgba(58,58,58,0.15); border-radius: 10px; padding: 14px 16px; width: 100%; outline: none; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
 .f-input:focus { border-color: var(--brand); }
-.pw-wrap { position: relative; width: 100%; }
-.pw-wrap .f-input { padding-right: 48px; }
+.pw-wrap { position: relative; width: 100%; margin-bottom: 16px; }
+.pw-wrap .f-input { padding-right: 48px; margin-bottom: 0; }
 .pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--gmut); padding: 4px; line-height: 0; display: flex; align-items: center; }
 .pw-toggle:hover { color: var(--brand); }
 .forgot { font-size: 14px; color: var(--gmut); text-align: right; margin-bottom: 20px; cursor: pointer; }
