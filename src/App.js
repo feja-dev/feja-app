@@ -1371,6 +1371,13 @@ function App() {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [welcomeIdx, setWelcomeIdx] = useState(0);
   const [welcomeFade, setWelcomeFade] = useState(true);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const loadUserData = async (authUser) => {
     const { data: profile } = await supabase
       .from('profiles')
@@ -1398,6 +1405,10 @@ function App() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (_event === 'PASSWORD_RECOVERY') {
+        setScreen('reset');
+        return;
+      }
       if (!session) {
         setUser(null);
         setVenue(null);
@@ -1430,6 +1441,24 @@ function App() {
     }
     setUser(data.user);
     await loadUserData(data.user);
+  };
+
+  const handleForgotPassword = async () => {
+    setForgotLoading(true);
+    await supabase.auth.resetPasswordForEmail(forgotEmail, { redirectTo: window.location.origin });
+    setForgotLoading(false);
+    setForgotSent(true);
+  };
+
+  const handleResetPassword = async () => {
+    setResetLoading(true);
+    setResetError('');
+    const { error } = await supabase.auth.updateUser({ password: resetPassword });
+    setResetLoading(false);
+    if (error) { setResetError('Could not update password. Please try again.'); return; }
+    await supabase.auth.signOut();
+    setResetPassword('');
+    setScreen('login');
   };
 
   const handleSignOut = async () => {
@@ -1510,9 +1539,75 @@ function App() {
               </button>
             </div>
             {authError && <p className="auth-error">{authError}</p>}
-            <p className="forgot">Forgot password?</p>
+            <p className="forgot" onClick={() => { setForgotEmail(email); setForgotSent(false); setScreen('forgot'); }}>Forgot password?</p>
             <button className="btn-primary" onClick={handleLogin} disabled={loginLoading}>
               {loginLoading ? 'Signing in...' : 'Sign in'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {screen === 'forgot' && (
+        <div className="screen login-page">
+          <button className="login-back-btn" onClick={() => setScreen('login')}>←</button>
+          <div className="login-top">
+            <div className="login-logo-sm"><img src={logo} alt="Feja" /></div>
+            <h1 className="login-title">Reset password</h1>
+            <p className="login-sub">We'll send a reset link to your email</p>
+          </div>
+          <div className="login-form">
+            {forgotSent ? (
+              <div className="forgot-sent">
+                <p>Check your inbox — a reset link is on its way to <strong>{forgotEmail}</strong>.</p>
+                <button className="btn-primary" style={{marginTop: '20px'}} onClick={() => setScreen('login')}>Back to sign in</button>
+              </div>
+            ) : (
+              <>
+                <label className="f-lbl">Email</label>
+                <input
+                  className="f-input"
+                  type="email"
+                  placeholder="you@venue.com"
+                  value={forgotEmail}
+                  onChange={e => setForgotEmail(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleForgotPassword()}
+                />
+                <button className="btn-primary" onClick={handleForgotPassword} disabled={forgotLoading || !forgotEmail}>
+                  {forgotLoading ? 'Sending...' : 'Send reset link'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {screen === 'reset' && (
+        <div className="screen login-page">
+          <div className="login-top">
+            <div className="login-logo-sm"><img src={logo} alt="Feja" /></div>
+            <h1 className="login-title">New password</h1>
+            <p className="login-sub">Choose something strong</p>
+          </div>
+          <div className="login-form">
+            <label className="f-lbl">New password</label>
+            <div className="pw-wrap">
+              <input
+                className="f-input"
+                type={showResetPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={resetPassword}
+                onChange={e => setResetPassword(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleResetPassword()}
+              />
+              <button type="button" className="pw-toggle" aria-label={showResetPassword ? 'Hide password' : 'Show password'} onClick={() => setShowResetPassword(p => !p)}>
+                {showResetPassword
+                  ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  : <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
+              </button>
+            </div>
+            {resetError && <p className="auth-error">{resetError}</p>}
+            <button className="btn-primary" onClick={handleResetPassword} disabled={resetLoading || resetPassword.length < 6}>
+              {resetLoading ? 'Updating...' : 'Set new password'}
             </button>
           </div>
         </div>

@@ -78,6 +78,8 @@ body { font-family: var(--font); background: var(--tint); }
 .pw-toggle:hover { color: var(--brand); }
 .forgot { font-size: 14px; color: var(--gmut); text-align: right; margin-bottom: 20px; cursor: pointer; }
 .forgot:hover { color: var(--brand); }
+.forgot-sent { text-align: center; color: var(--blk); font-size: 15px; line-height: 1.6; }
+.forgot-sent strong { color: var(--brand); }
 .btn-primary { width: 100%; padding: 16px; background: var(--brand); color: var(--wht); border: none; border-radius: 12px; font-family: var(--font); font-size: 17px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 16px rgba(232,64,26,0.3); }
 .btn-primary:hover { background: var(--brand-dark); }
 
