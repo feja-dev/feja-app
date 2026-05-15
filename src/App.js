@@ -828,7 +828,7 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
                       <span className="dash-item-time">{log ? log.time : ''}</span>
                       <div className={`dash-item-initials ${log ? '' : 'dash-item-initials--empty'}`}>{log ? log.initials : ''}</div>
                       <span className={`dash-item-result dash-item-result--${log?.result || 'pending'}`}>
-                        {log ? (log.result === 'pass' ? 'Pass' : 'Fail') : '—'}
+                        {log ? (log.result === 'pass' ? 'Pass' : 'Failed') : '—'}
                       </span>
                       <span className={`log-chevron dash-item-chevron${isFail ? '' : ' dash-item-chevron--hidden'} ${itemOpen ? '' : 'log-chevron--up'}`}>›</span>
                     </div>
@@ -1004,7 +1004,7 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
                           <span className="dash-item-time">{log ? log.time : ''}</span>
                           <div className={`dash-item-initials ${log ? '' : 'dash-item-initials--empty'}`}>{log ? log.initials : ''}</div>
                           <span className={`dash-item-result dash-item-result--${log?.result || 'pending'}`}>
-                            {log ? (log.result === 'pass' ? 'Pass' : 'Fail') : '—'}
+                            {log ? (log.result === 'pass' ? 'Pass' : 'Failed') : '—'}
                           </span>
                           <span className={`log-chevron dash-item-chevron${isFail ? '' : ' dash-item-chevron--hidden'} ${itemOpen ? '' : 'log-chevron--up'}`}>›</span>
                         </div>
@@ -1050,10 +1050,10 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
             <div className="dash-day-hdr" onClick={() => setOpenDay(isOpen ? -1 : offset)}>
               <div className="dash-day-hdr-left">
                 <div className="dash-day-label">{dayLabel(offset)}</div>
-                <div className="dash-day-meta">{logged}/{totalItems} logged · {fails > 0 ? `${fails} fail${fails > 1 ? 's' : ''}` : 'All clear'}</div>
+                <div className="dash-day-meta">{logged}/{totalItems} logged · {fails > 0 ? `${fails} failed` : 'All clear'}</div>
               </div>
               <div className="dash-day-hdr-right">
-                {fails > 0 && <span className="dash-section-badge dash-section-badge--fail">{fails} fail{fails > 1 ? 's' : ''}</span>}
+                {fails > 0 && <span className="dash-section-badge dash-section-badge--fail">{fails} failed</span>}
                 <span className={`log-chevron ${isOpen ? '' : 'log-chevron--up'}`}>›</span>
               </div>
             </div>
