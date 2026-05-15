@@ -212,8 +212,33 @@ function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp, inviteVe
     });
     if (signInError) { setFormError(signInError.message); setFormLoading(false); return; }
 
+    const signedInUser = signInData.user;
+
+    if (inviteVenueId) {
+      await supabase.from('profiles').insert({
+        id: signedInUser.id,
+        name: formName.trim(),
+        venue_id: inviteVenueId,
+        role: 'staff',
+      });
+    } else {
+      const { data: venueData } = await supabase
+        .from('venues')
+        .insert({ name: formVenue.trim() })
+        .select()
+        .single();
+      if (venueData) {
+        await supabase.from('profiles').insert({
+          id: signedInUser.id,
+          name: formName.trim(),
+          venue_id: venueData.id,
+          role: 'admin',
+        });
+      }
+    }
+
     setFormLoading(false);
-    onSignedUp(signInData.user);
+    onSignedUp(signedInUser);
   };
 
   return (
