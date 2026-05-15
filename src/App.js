@@ -692,6 +692,9 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [openAttention, setOpenAttention] = useState({});
+  const [attentionActions, setAttentionActions] = useState({});
+  const [savingAction, setSavingAction] = useState({});
   const toggleItem = (key) => setOpenItems(p => ({ ...p, [key]: !p[key] }));
   const totalItems = sections.reduce((n, s) => n + s.items.length, 0);
 
@@ -725,6 +728,7 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
           const name = log.user_name || '';
           const initials = name.split(' ').map(n => n[0] || '').join('').toUpperCase().slice(0, 2) || '?';
           grouped[offset].push({
+            id: log.id,
             time: new Date(log.logged_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false }),
             hour: new Date(log.logged_at).getHours(),
             sectionId: log.section_id,
@@ -771,6 +775,21 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
   const lastLogTime = todayLogs[0]?.time;
   const summaryStatus = allDone && todayFails === 0 ? 'done' : todayFails > 0 ? 'fail' : todayLogged > 0 ? 'progress' : 'pending';
   const summaryLabel = { done: 'All clear', fail: 'Action required', progress: 'In progress', pending: 'Not started' }[summaryStatus];
+
+  const attentionItems = todayLogs.filter(l => l.result === 'fail' && !l.actions?.length);
+
+  const saveAttentionActions = async (logId, actions) => {
+    setSavingAction(p => ({ ...p, [logId]: true }));
+    await supabase.from('logs').update({ actions }).eq('id', logId);
+    setLogsByDay(prev => {
+      const today = [...(prev[0] || [])];
+      const idx = today.findIndex(l => l.id === logId);
+      if (idx >= 0) today[idx] = { ...today[idx], actions };
+      return { ...prev, 0: today };
+    });
+    setOpenAttention(p => ({ ...p, [logId]: false }));
+    setSavingAction(p => ({ ...p, [logId]: false }));
+  };
 
   const renderSections = (logs, offset) => (
     <div className="dash-day-body">
@@ -876,6 +895,55 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
           <div className="dash-summary-fill" style={{ width: `${todayPct}%` }} />
         </div>
       </div>
+
+      {attentionItems.length > 0 && (
+        <div className="dash-attention">
+          <div className="dash-attention-hdr">
+            <span className="dash-attention-title">Needs attention</span>
+            <span className="dash-attention-count">{attentionItems.length}</span>
+          </div>
+          {attentionItems.map(log => {
+            const section = sections.find(s => s.id === log.sectionId);
+            const shift = getShiftForHour(log.hour);
+            const isOpen = openAttention[log.id];
+            const selected = attentionActions[log.id] || [];
+            return (
+              <div key={log.id} className="dash-attn-item">
+                <span className="dash-attn-name">{log.item}</span>
+                <span className="dash-attn-detail">{log.temp}°C · {shift} · logged {log.time}</span>
+                <span className="dash-attn-label">Corrective action required</span>
+                {!isOpen && (
+                  <button className="dash-attn-btn" onClick={() => setOpenAttention(p => ({ ...p, [log.id]: true }))}>
+                    Add corrective action
+                  </button>
+                )}
+                {isOpen && (
+                  <div className="dash-attn-actions">
+                    <div className="dash-attn-chips">
+                      {(section?.correctiveActions || []).map(action => (
+                        <button key={action} className={`log-chip ${selected.includes(action) ? 'log-chip--on' : ''}`}
+                          onClick={() => setAttentionActions(p => {
+                            const prev = p[log.id] || [];
+                            const isOn = prev.includes(action);
+                            return { ...p, [log.id]: isOn ? prev.filter(a => a !== action) : [...prev, action] };
+                          })}>
+                          {action}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="dash-attn-btns">
+                      <button className="dash-attn-cancel" onClick={() => setOpenAttention(p => ({ ...p, [log.id]: false }))}>Cancel</button>
+                      <button className="dash-attn-save" disabled={!selected.length || savingAction[log.id]} onClick={() => saveAttentionActions(log.id, selected)}>
+                        {savingAction[log.id] ? 'Saving...' : 'Save'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="dash-day-card">
         <div className="dash-day-hdr" onClick={() => setOpenDay(openDay === 0 ? -1 : 0)}>

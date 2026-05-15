@@ -525,3 +525,22 @@ body { font-family: var(--font); background: var(--tint); }
 .legal-card-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: #5a5a52; margin-bottom: 4px; }
 .legal-card-value { font-size: 14px; font-weight: 600; color: #1a1a18; }
 .adm-subscription-btn:hover { background: rgba(232,64,26,0.06); }
+
+/* NEEDS ATTENTION */
+.dash-attention { background: var(--wht); border: 1.5px solid rgba(232,64,26,0.3); border-radius: 16px; overflow: hidden; }
+.dash-attention-hdr { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 12px; border-bottom: 1px solid rgba(232,64,26,0.1); }
+.dash-attention-title { font-size: 15px; font-weight: 600; color: var(--brand); }
+.dash-attention-count { font-size: 12px; font-weight: 700; color: var(--brand); background: rgba(232,64,26,0.1); border-radius: 20px; padding: 2px 8px; }
+.dash-attn-item { padding: 14px 18px; border-bottom: 1px solid rgba(232,64,26,0.08); display: flex; flex-direction: column; gap: 5px; }
+.dash-attn-item:last-child { border-bottom: none; }
+.dash-attn-name { font-size: 15px; font-weight: 600; color: var(--blk); }
+.dash-attn-detail { font-size: 13px; color: var(--gmut); }
+.dash-attn-label { font-size: 12px; font-weight: 500; color: var(--brand); margin-bottom: 2px; }
+.dash-attn-btn { align-self: flex-start; font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--wht); background: var(--brand); border: none; border-radius: 20px; padding: 8px 18px; cursor: pointer; margin-top: 2px; }
+.dash-attn-btn:hover { background: var(--brand-dark); }
+.dash-attn-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.dash-attn-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.dash-attn-btns { display: flex; gap: 8px; }
+.dash-attn-cancel { flex: 1; font-family: var(--font); font-size: 13px; font-weight: 500; color: var(--gmut); background: none; border: 1.5px solid rgba(58,58,58,0.15); border-radius: 20px; padding: 9px; cursor: pointer; }
+.dash-attn-save { flex: 2; font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--wht); background: var(--brand); border: none; border-radius: 20px; padding: 9px; cursor: pointer; }
+.dash-attn-save:disabled { opacity: 0.4; cursor: default; }
