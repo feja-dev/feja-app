@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import logo from './Feja Logov1.png';
 import supabase from './supabase';
@@ -980,9 +980,8 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
 function AdminDashboard({ onSignOut, user, venue }) {
   const [view, setView] = useState('checklist');
   const [sections, setSections] = useState(LOG_SECTIONS);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [collapsed, setCollapsed] = useState({ __items__: true, __team__: true });
+  const sectionsLoaded = useRef(false);
   const [newItem, setNewItem] = useState({});
   const [newAction, setNewAction] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -995,6 +994,12 @@ function AdminDashboard({ onSignOut, user, venue }) {
   const [addingSection, setAddingSection] = useState(false);
   const [newSectionType, setNewSectionType] = useState('cold');
   const [newSectionName, setNewSectionName] = useState('');
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setTick(n => n + 1), 60000);
+    return () => clearInterval(t);
+  }, []);
 
   const displayName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Admin';
 
@@ -1014,8 +1019,18 @@ function AdminDashboard({ onSignOut, user, venue }) {
       .single()
       .then(({ data }) => {
         if (data?.sections?.length) setSections(data.sections);
+        setTimeout(() => { sectionsLoaded.current = true; }, 0);
       });
   }, [venue?.id]);
+
+  useEffect(() => {
+    if (!sectionsLoaded.current) return;
+    const t = setTimeout(() => {
+      if (!venue?.id) return;
+      supabase.from('venues').update({ sections }).eq('id', venue.id);
+    }, 800);
+    return () => clearTimeout(t);
+  }, [sections]);
 
   const addMember = () => {
     if (!newMember.name.trim() || !newMember.email.trim()) return;
@@ -1075,7 +1090,6 @@ function AdminDashboard({ onSignOut, user, venue }) {
     };
     const updated = [...sections, newSection];
     setSections(updated);
-    saveSectionsData(updated);
     setAddingSection(false);
     setNewSectionName('');
     setNewSectionType('cold');
@@ -1084,7 +1098,6 @@ function AdminDashboard({ onSignOut, user, venue }) {
   const removeSection = (id) => {
     const updated = sections.filter(s => s.id !== id);
     setSections(updated);
-    saveSectionsData(updated);
   };
 
   const saveSectionsData = async (data) => {
@@ -1092,22 +1105,15 @@ function AdminDashboard({ onSignOut, user, venue }) {
     await supabase.from('venues').update({ sections: data }).eq('id', venue.id);
   };
 
-  const saveSections = async () => {
-    if (!venue?.id) return;
-    setSaving(true);
-    await saveSectionsData(sections);
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-AU', { weekday: 'short', day: '2-digit', month: 'short' });
   const timeStr = now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false });
 
-  const trialDaysLeft = user?.created_at
-    ? Math.max(0, 14 - Math.floor((now - new Date(user.created_at)) / 86400000))
+  const trialMsLeft = user?.created_at
+    ? Math.max(0, new Date(user.created_at).getTime() + 14 * 86400000 - now.getTime())
     : null;
+  const trialDays = trialMsLeft !== null ? Math.floor(trialMsLeft / 86400000) : null;
+  const trialHours = trialMsLeft !== null ? Math.floor((trialMsLeft % 86400000) / 3600000) : null;
 
   const goToSettings = () => {
     setCollapsed(p => {
@@ -1129,9 +1135,13 @@ function AdminDashboard({ onSignOut, user, venue }) {
           <div className="app-hdr-bottom">
             <div className="hdr-name">Hi, {displayName}</div>
             <div className="hdr-right">
-              {trialDaysLeft !== null && (
-                <span className={`trial-pill ${trialDaysLeft <= 3 ? 'trial-pill--urgent' : ''}`}>
-                  {trialDaysLeft === 0 ? 'Trial expired' : `${trialDaysLeft}d trial`}
+              {trialMsLeft !== null && (
+                <span className={`trial-pill ${trialDays <= 3 ? 'trial-pill--urgent' : ''}`}>
+                  {trialMsLeft === 0
+                    ? 'Trial expired'
+                    : trialDays > 0
+                      ? `${trialDays}d ${trialHours}h left`
+                      : `${trialHours}h left`}
                 </span>
               )}
               <button className="signout-pill" onClick={onSignOut}>sign out</button>
@@ -1295,9 +1305,6 @@ function AdminDashboard({ onSignOut, user, venue }) {
             ) : (
               <button className="adm-add-section-btn" onClick={() => setAddingSection(true)}>+ Section</button>
             )}
-            <button className="btn-primary adm-save-btn" onClick={saveSections} disabled={saving}>
-              {saved ? 'Saved ✓' : saving ? 'Saving...' : 'Save sections'}
-            </button>
           </div>
         )}
 
