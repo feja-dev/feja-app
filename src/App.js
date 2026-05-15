@@ -1137,7 +1137,6 @@ function AdminDashboard({ onSignOut, user, venue }) {
   const [team, setTeam] = useState([]);
   const [newMember, setNewMember] = useState({ name: '', email: '', role: 'staff' });
   const [confirmRemove, setConfirmRemove] = useState(null);
-  const [confirmRole, setConfirmRole] = useState(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState('items');
   const [addingSection, setAddingSection] = useState(false);
@@ -1190,12 +1189,6 @@ function AdminDashboard({ onSignOut, user, venue }) {
   const removeMember = (id) => {
     setTeam(prev => prev.filter(m => m.id !== id));
     setConfirmRemove(null);
-  };
-
-  const confirmAndToggleRole = (id) => setConfirmRole(id);
-  const applyRoleChange = (id) => {
-    setTeam(prev => prev.map(m => m.id === id ? { ...m, role: m.role === 'admin' ? 'staff' : 'admin' } : m));
-    setConfirmRole(null);
   };
 
   const toggleSection = id => setCollapsed(p => ({ ...p, [id]: !p[id] }));
