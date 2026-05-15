@@ -245,7 +245,7 @@ function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp, inviteVe
       },
       body: JSON.stringify({
         from: 'Feja Signups <onboarding@resend.dev>',
-        to: 'jaye@greenpointmedia.com.au',
+        to: 'jaoli1982@gmail.com',
         subject: `New signup: ${formName.trim()} — ${formVenue.trim() || 'invited staff'}`,
         html: `<p><strong>Name:</strong> ${formName.trim()}</p><p><strong>Venue:</strong> ${formVenue.trim() || '(invited staff)'}</p><p><strong>Email:</strong> ${formEmail.trim()}</p>`,
       }),
