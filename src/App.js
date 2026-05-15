@@ -1352,12 +1352,14 @@ function App() {
   };
 
   useEffect(() => {
+    const isStaging = process.env.REACT_APP_STAGING === 'true';
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
         loadUserData(session.user);
       } else {
-        setScreen('linktree');
+        setScreen(isStaging ? 'login' : 'linktree');
       }
     });
 
@@ -1365,7 +1367,7 @@ function App() {
       if (!session) {
         setUser(null);
         setVenue(null);
-        setScreen('linktree');
+        setScreen(isStaging ? 'login' : 'linktree');
       }
     });
 

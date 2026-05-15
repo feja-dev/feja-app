@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(ls /Users/shoes/feja-app && ls /Users/shoes/ | head -30)",
+      "Read(//Users/shoes/**)",
+      "Bash(open /Users/shoes/feja-app/public/landing.html)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(npm install *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(grep -n \"hdr-name\\\\|Hi, {\")"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git remote *)",
+      "Bash(supabase --version)",
+      "Bash(brew --version)",
+      "Bash(/opt/homebrew/bin/brew --version)",
+      "Bash(/opt/homebrew/bin/supabase --version)",
+      "Bash(/opt/homebrew/bin/supabase projects *)",
+      "Bash(mkdir -p /Users/shoes/feja-app/supabase/migrations)",
+      "Bash(/opt/homebrew/bin/supabase link *)",
+      "Bash(/opt/homebrew/bin/supabase db *)",
+      "Bash(curl -X PATCH https://api.cloudflare.com/client/v4/accounts/4ebed89cec7367fd471c07a9b93e4c4e/pages/projects/feja-app -H 'Authorization: Bearer cfut_FgTc5bd29qrOHLOiCO0oGQGDzgYplzgOZvwF8evG06357c5b' -H 'Content-Type: application/json' --data '{ *)",
+      "Bash(curl -s -X PATCH https://api.cloudflare.com/client/v4/accounts/4ebed89cec7367fd471c07a9b93e4c4e/pages/projects/feja-app -H 'Authorization: Bearer cfut_FgTc5bd29qrOHLOiCO0oGQGDzgYplzgOZvwF8evG06357c5b' -H 'Content-Type: application/json' --data '{\"source\":{\"type\":\"github\",\"config\":{\"owner\":\"feja-dev\",\"repo_name\":\"feja-app\",\"production_branch\":\"main\",\"pr_comments_enabled\":true,\"deployments_enabled\":true}}}')",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d['result']['source']['config']['owner']\\)\")"
+    ],
+    "additionalDirectories": [
+      "/Users/shoes/feja-app/supabase"
+    ]
+  }
+}
