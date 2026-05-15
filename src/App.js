@@ -394,14 +394,12 @@ function NumPad({ value, onValue, onDone }) {
 function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSections, onDashboard, onSettings }) {
   const [loadedSections, setLoadedSections] = useState(null);
   const sections = propSections?.length > 0 ? propSections : (loadedSections || LOG_SECTIONS);
-  const [entries, setEntries] = useState({});
+  const [draftTemp, setDraftTemp] = useState({});
   const [collapsed, setCollapsed] = useState(() => Object.fromEntries(sections.map(s => [s.id, true])));
   const [logged, setLogged] = useState({});
   const [submitting, setSubmitting] = useState({});
   const [showNote, setShowNote] = useState({});
   const [numpadKey, setNumpadKey] = useState(null);
-  const [loggedNote, setLoggedNote] = useState({});
-  const [showLoggedNote, setShowLoggedNote] = useState({});
 
   const displayName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'there';
 
@@ -434,25 +432,27 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
 
   useEffect(() => {
     const stored = localStorage.getItem(getShiftKey());
-    if (stored) setLogged(JSON.parse(stored));
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored);
+      const migrated = Object.fromEntries(
+        Object.entries(parsed).filter(([, v]) => typeof v === 'object' && v !== null)
+      );
+      setLogged(migrated);
+    } catch {}
   }, [getShiftKey]);
 
   const toggleSection = (id) => setCollapsed(prev => ({ ...prev, [id]: !prev[id] }));
 
-  const set = (key, field, value) =>
-    setEntries(prev => ({ ...prev, [key]: { temp: '', note: '', actions: [], ...prev[key], [field]: value } }));
+  const handleLog = async (key, section) => {
+    const temp = draftTemp[key] ?? '';
+    if (temp === '') return;
+    const result = getResult(section.threshold, temp);
+    if (result === null) return;
 
-  const toggleAction = (key, action) => {
-    setEntries(prev => {
-      const entry = prev[key] || { temp: '', note: '', actions: [] };
-      const isOn = entry.actions.includes(action);
-      return { ...prev, [key]: { ...entry, actions: isOn ? entry.actions.filter(a => a !== action) : [...entry.actions, action] } };
-    });
-  };
+    setSubmitting(p => ({ ...p, [key]: true }));
+    const loggedAt = new Date().toISOString();
 
-  const handleLog = async (key, section, entry) => {
-    setSubmitting(prev => ({ ...prev, [key]: true }));
-    const result = getResult(section.threshold, entry.temp);
     if (user.id) {
       const { error } = await supabase.from('logs').insert({
         user_id: user.id,
@@ -460,32 +460,69 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
         venue_id: venue?.id || null,
         section_id: section.id,
         item: key.split('__')[1],
-        temp: entry.temp !== '' ? parseFloat(entry.temp) : null,
+        temp: parseFloat(temp),
         result,
-        note: entry.note || null,
-        actions: entry.actions,
-        logged_at: new Date().toISOString(),
+        note: null,
+        actions: [],
+        logged_at: loggedAt,
       });
-      setSubmitting(prev => ({ ...prev, [key]: false }));
-      if (error) { console.error('Log insert error:', error); return; }
-      setLogged(prev => {
-        const next = { ...prev, [key]: true };
-        localStorage.setItem(getShiftKey(), JSON.stringify(next));
-        return next;
-      });
-    } else {
-      setSubmitting(prev => ({ ...prev, [key]: false }));
-      setLogged(prev => {
-        const next = { ...prev, [key]: true };
-        localStorage.setItem(getShiftKey(), JSON.stringify(next));
-        return next;
-      });
+      if (error) { console.error('Log insert error:', error); setSubmitting(p => ({ ...p, [key]: false })); return; }
     }
+
+    setSubmitting(p => ({ ...p, [key]: false }));
+    setLogged(prev => {
+      const next = { ...prev, [key]: { temp, result, note: '', actions: [], loggedAt } };
+      localStorage.setItem(getShiftKey(), JSON.stringify(next));
+      return next;
+    });
+    setDraftTemp(p => { const n = { ...p }; delete n[key]; return n; });
+  };
+
+  const handleSelectAction = (key, action) => {
+    setLogged(prev => {
+      const current = prev[key];
+      if (!current) return prev;
+      const actions = current.actions.includes(action)
+        ? current.actions.filter(a => a !== action)
+        : [...current.actions, action];
+      const next = { ...prev, [key]: { ...current, actions } };
+      localStorage.setItem(getShiftKey(), JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleUpdateNote = (key, note) => {
+    setLogged(prev => {
+      const current = prev[key];
+      if (!current) return prev;
+      const next = { ...prev, [key]: { ...current, note } };
+      localStorage.setItem(getShiftKey(), JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const relog = (key) => {
+    setLogged(prev => {
+      const next = { ...prev };
+      delete next[key];
+      localStorage.setItem(getShiftKey(), JSON.stringify(next));
+      return next;
+    });
+    setShowNote(p => { const n = { ...p }; delete n[key]; return n; });
   };
 
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-AU', { weekday: 'short', day: '2-digit', month: 'short' });
   const timeStr = now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  const totalAllItems = sections.reduce((sum, s) => sum + s.items.length, 0);
+  const allEmpty = totalAllItems === 0;
+  const allComplete = !allEmpty && sections.every(s =>
+    s.items.every(item => {
+      const l = logged[`${s.id}__${item}`];
+      return l && !(l.result === 'fail' && l.actions.length === 0);
+    })
+  );
 
   return (
     <div className={hideHeader ? undefined : 'screen app-screen'}>
@@ -510,142 +547,164 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
       )}
 
       <div className="log-body">
-        {sections.map((section) => (
-          <div key={section.id} className="log-section">
-            <div className="log-section-title" onClick={() => toggleSection(section.id)}>
-              <span>{section.title}</span>
-              <span className={`log-chevron ${collapsed[section.id] ? 'log-chevron--up' : ''}`}>›</span>
-            </div>
-            {!collapsed[section.id] && section.items.map((item) => {
-              const key = `${section.id}__${item}`;
-              const entry = entries[key] || { temp: '', note: '', actions: [] };
-              const result = getResult(section.threshold, entry.temp);
-              const isLogged = !!logged[key];
+        {allEmpty && (
+          <div className="log-empty-state">
+            <div className="log-empty-title">No log items set up yet</div>
+            <div className="log-empty-body">Ask an admin to add log items in Settings.</div>
+          </div>
+        )}
 
-              if (isLogged) {
-                return (
-                  <div key={key} className="log-row log-row--logged">
-                    <div className="log-row-top">
-                      <div className="log-row-name">{item}</div>
-                      <div className="log-logged-right">
-                        <span className="log-logged-temp">{entry.temp}°C</span>
-                        <span className={`log-result-pill ${result === 'pass' ? 'log-result-pill--pass' : 'log-result-pill--fail'}`}>
-                          {result === 'pass' ? 'Pass' : 'Fail'}
-                        </span>
-                        <button className="log-new-entry-btn" onClick={() => {
-                          setLogged(p => { const n = { ...p }; delete n[key]; localStorage.setItem(getShiftKey(), JSON.stringify(n)); return n; });
-                          setEntries(p => { const n = { ...p }; delete n[key]; return n; });
-                          setShowNote(p => { const n = { ...p }; delete n[key]; return n; });
-                          setShowLoggedNote(p => { const n = { ...p }; delete n[key]; return n; });
-                          setLoggedNote(p => { const n = { ...p }; delete n[key]; return n; });
-                        }}>Re-log</button>
+        {allComplete && (
+          <div className="log-complete-banner">
+            <div className="log-complete-icon">✓</div>
+            <div>
+              <div className="log-complete-title">All done</div>
+              <div className="log-complete-body">All required items for this check have been logged.</div>
+            </div>
+          </div>
+        )}
+
+        {sections.map((section) => {
+          if (section.items.length === 0) return null;
+
+          const totalItems = section.items.length;
+          const loggedCount = section.items.filter(item => !!logged[`${section.id}__${item}`]).length;
+          const hasUnresolvedFail = section.items.some(item => {
+            const l = logged[`${section.id}__${item}`];
+            return l?.result === 'fail' && (!l.actions || l.actions.length === 0);
+          });
+          const sectionStatus = loggedCount === 0 ? 'pending'
+            : hasUnresolvedFail ? 'action-required'
+            : loggedCount < totalItems ? 'in-progress'
+            : 'complete';
+          const sectionStatusLabel = {
+            'pending': 'Pending',
+            'in-progress': 'In progress',
+            'action-required': 'Action required',
+            'complete': 'Complete',
+          }[sectionStatus];
+
+          const ruleText = section.type && section.type !== 'custom'
+            ? `${SECTION_TYPES[section.type]?.label} · ${section.threshold.max !== undefined ? `Max ${section.threshold.max}°C` : `Min ${section.threshold.min}°C`}`
+            : [
+                section.threshold.max !== undefined && `Max ${section.threshold.max}°C`,
+                section.threshold.min !== undefined && `Min ${section.threshold.min}°C`,
+              ].filter(Boolean).join(' · ') || null;
+
+          return (
+            <div key={section.id} className="log-section">
+              <div className="log-section-hdr" onClick={() => toggleSection(section.id)}>
+                <div className="log-section-hdr-left">
+                  <span className="log-section-name">{section.title}</span>
+                  {ruleText && <span className="log-section-rule">{ruleText}</span>}
+                  <div className="log-section-meta">
+                    <span className="log-section-progress">{loggedCount} of {totalItems} logged</span>
+                    <span className={`log-section-badge log-section-badge--${sectionStatus}`}>{sectionStatusLabel}</span>
+                  </div>
+                </div>
+                <span className={`log-chevron ${collapsed[section.id] ? 'log-chevron--up' : ''}`}>›</span>
+              </div>
+
+              {!collapsed[section.id] && section.items.map((item) => {
+                const key = `${section.id}__${item}`;
+                const l = logged[key];
+                const isLogged = !!l;
+                const isActive = numpadKey === key;
+                const draft = draftTemp[key] ?? '';
+                const liveResult = draft !== '' ? getResult(section.threshold, draft) : null;
+
+                if (isLogged) {
+                  const isResolved = l.result === 'fail' && l.actions.length > 0;
+                  const badgeClass = l.result === 'pass' ? 'pass' : isResolved ? 'resolved' : 'fail';
+                  const badgeLabel = l.result === 'pass' ? 'Pass' : isResolved ? 'Resolved' : 'Fail';
+
+                  return (
+                    <div key={key} className={`log-item-row log-item-row--logged${l.result === 'fail' && !isResolved ? ' log-item-row--fail' : ''}`}>
+                      <div className="log-item-top">
+                        <span className="log-item-name">{item}</span>
+                        <div className="log-item-right">
+                          <span className="log-item-temp">{l.temp}°C</span>
+                          <span className={`log-status-badge log-status-badge--${badgeClass}`}>{badgeLabel}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="log-logged-note-row">
-                      <button className="log-note-toggle" onClick={() => setShowLoggedNote(p => ({ ...p, [key]: !p[key] }))}>
-                        {showLoggedNote[key] ? '− Note' : '+ Note'}
-                      </button>
-                      {showLoggedNote[key] && (
+                      <div className="log-item-actions">
+                        <button className="log-relog-btn" onClick={() => relog(key)}>Re-log</button>
+                        <button className="log-note-btn" onClick={() => setShowNote(p => ({ ...p, [key]: !p[key] }))}>
+                          {l.note ? 'Edit note' : '+ Note'}
+                        </button>
+                      </div>
+                      {showNote[key] && (
                         <input
                           className="log-note-input"
                           type="text"
-                          placeholder="Add a note, e.g. entry error..."
-                          value={loggedNote[key] || ''}
-                          onChange={e => setLoggedNote(p => ({ ...p, [key]: e.target.value }))}
+                          placeholder="Add a note..."
+                          value={l.note || ''}
+                          onChange={e => handleUpdateNote(key, e.target.value)}
+                          autoFocus
                         />
                       )}
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={key} className={`log-row ${result === 'pass' ? 'log-row--pass' : result === 'fail' ? 'log-row--fail' : ''}`}>
-                  <div className="log-row-top">
-                    <div className="log-row-name">{item}</div>
-                    <div className="log-temp-wrap">
-                      <button
-                        className={`log-temp-tap ${entry.temp !== '' ? 'log-temp-tap--filled' : ''}`}
-                        onClick={() => setNumpadKey(key)}
-                      >
-                        {entry.temp !== '' ? entry.temp : '—'}
-                      </button>
-                      <span className="log-temp-unit">°C</span>
-                      {result && (
-                        <span className={`log-result-pill ${result === 'pass' ? 'log-result-pill--pass' : 'log-result-pill--fail'}`}>
-                          {result === 'pass' ? 'Pass' : 'Fail'}
-                        </span>
+                      {l.result === 'fail' && section.correctiveActions?.length > 0 && (
+                        <div className={`log-corrective-block${isResolved ? ' log-corrective-block--resolved' : ''}`}>
+                          <div className="log-corrective-label">
+                            {isResolved ? 'Corrective action added' : 'Select a corrective action'}
+                          </div>
+                          <div className="log-corrective-chips">
+                            {section.correctiveActions.map(action => (
+                              <button
+                                key={action}
+                                className={`log-chip ${l.actions.includes(action) ? 'log-chip--on' : ''}`}
+                                onClick={() => handleSelectAction(key, action)}
+                              >{action}</button>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
-                  </div>
+                  );
+                }
 
-                  {result === 'pass' && (
-                    <button
-                      className="log-submit-btn"
-                      disabled={submitting[key]}
-                      onClick={() => handleLog(key, section, entry)}
-                    >
-                      {submitting[key] ? 'Logging...' : 'Log'}
-                    </button>
-                  )}
-
-                  {result === 'fail' && (
-                    <div className="log-corrective">
-                      <div className="log-corrective-title">Corrective action</div>
-                      <div className="log-corrective-chips">
-                        {section.correctiveActions.map(action => (
-                          <button
-                            key={action}
-                            className={`log-chip ${entry.actions.includes(action) ? 'log-chip--on' : ''}`}
-                            onClick={() => toggleAction(key, action)}
-                          >{action}</button>
-                        ))}
-                      </div>
-                      <div className="log-note-row">
-                        <button className="log-note-toggle" onClick={() => setShowNote(p => ({ ...p, [key]: !p[key] }))}>
-                          {showNote[key] ? '− Note' : '+ Note'}
+                return (
+                  <div key={key} className={`log-item-row${isActive ? ' log-item-row--active' : ''}`}>
+                    <div className="log-item-top">
+                      <span className="log-item-name">{item}</span>
+                      <div className="log-item-right">
+                        <button
+                          className={`log-temp-btn${draft !== '' ? ' log-temp-btn--filled' : ''}${isActive ? ' log-temp-btn--active' : ''}`}
+                          onClick={() => setNumpadKey(key)}
+                          disabled={submitting[key]}
+                        >
+                          <span className="log-temp-val">{draft !== '' ? draft : '—'}</span>
+                          <span className="log-temp-deg">°C</span>
                         </button>
-                        {showNote[key] && (
-                          <input
-                            className="log-note-input"
-                            type="text"
-                            placeholder="Add a note..."
-                            value={entry.note}
-                            onChange={e => set(key, 'note', e.target.value)}
-                          />
+                        {liveResult ? (
+                          <span className={`log-status-badge log-status-badge--${liveResult}`}>
+                            {liveResult === 'pass' ? 'Pass' : 'Fail'}
+                          </span>
+                        ) : (
+                          <span className="log-status-badge log-status-badge--pending">Pending</span>
                         )}
                       </div>
-                      <button
-                        className="log-submit-btn"
-                        disabled={submitting[key]}
-                        onClick={() => handleLog(key, section, entry)}
-                      >
-                        {submitting[key] ? 'Logging...' : 'Log'}
-                      </button>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+                    {submitting[key] && <div className="log-item-saving">Saving…</div>}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
 
       {numpadKey && (
         <NumPad
-          value={entries[numpadKey]?.temp || ''}
-          onValue={val => set(numpadKey, 'temp', val)}
+          value={draftTemp[numpadKey] || ''}
+          onValue={val => setDraftTemp(p => ({ ...p, [numpadKey]: val }))}
           onDone={() => {
             const key = numpadKey;
             setNumpadKey(null);
             const sectionId = key.split('__')[0];
             const section = sections.find(s => s.id === sectionId);
             if (!section) return;
-            const entry = entries[key] || { temp: '', note: '', actions: [] };
-            const result = getResult(section.threshold, entry.temp);
-            if (result === 'pass') {
-              handleLog(key, section, entry);
-            }
+            handleLog(key, section);
           }}
         />
       )}
