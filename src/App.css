@@ -105,7 +105,9 @@ body { font-family: var(--font); background: var(--tint); }
 .app-hdr-bottom { width: 100%; display: flex; align-items: center; gap: 14px; position: relative; }
 .app-hdr-admin-nav { width: 100%; display: flex; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(58,58,58,0.08); }
 .app-hdr-bottom .hdr-name { flex: 1; }
-.app-hdr-bottom .signout-pill { margin-left: auto; }
+.hdr-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.trial-pill { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: #f0f0f0; color: var(--gmut); }
+.trial-pill--urgent { background: #FEF0EB; color: var(--brand); }
 .hdr-name { font-size: 20px; font-weight: 500; color: var(--blk); }
 .signout-pill { font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--brand); background: #fff; border: 1.5px solid var(--brand); border-radius: 20px; padding: 6px 16px; cursor: pointer; }
 .signout-pill:hover { background: var(--brand); color: #fff; }

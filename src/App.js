@@ -1103,6 +1103,10 @@ function AdminDashboard({ onSignOut, user, venue }) {
   const dateStr = now.toLocaleDateString('en-AU', { weekday: 'short', day: '2-digit', month: 'short' });
   const timeStr = now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false });
 
+  const trialDaysLeft = user?.created_at
+    ? Math.max(0, 14 - Math.floor((now - new Date(user.created_at)) / 86400000))
+    : null;
+
   const goToSettings = () => {
     setCollapsed(p => {
       const next = { ...p };
@@ -1122,7 +1126,14 @@ function AdminDashboard({ onSignOut, user, venue }) {
           </div>
           <div className="app-hdr-bottom">
             <div className="hdr-name">Hi, {displayName}</div>
-            <button className="signout-pill" onClick={onSignOut}>sign out</button>
+            <div className="hdr-right">
+              {trialDaysLeft !== null && (
+                <span className={`trial-pill ${trialDaysLeft <= 3 ? 'trial-pill--urgent' : ''}`}>
+                  {trialDaysLeft === 0 ? 'Trial expired' : `${trialDaysLeft}d trial`}
+                </span>
+              )}
+              <button className="signout-pill" onClick={onSignOut}>sign out</button>
+            </div>
           </div>
           <div className="app-hdr-admin-nav">
             <button className="adm-nav-btn" onClick={() => setView('checklist')}>← Log</button>
