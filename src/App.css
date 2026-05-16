@@ -352,6 +352,22 @@ body { font-family: var(--font); background: var(--tint); }
 .adm-nav-btn { font-family: var(--font); font-size: 14px; font-weight: 500; color: var(--gmut); background: rgba(58,58,58,0.06); border: none; border-radius: 20px; cursor: pointer; padding: 7px 14px; transition: background 0.15s, color 0.15s; }
 .adm-nav-btn--on { background: var(--blk); color: var(--wht); }
 
+.sp-history { background: var(--wht); border: 1.5px solid rgba(58,58,58,0.1); border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.sp-history-title { font-size: 13px; font-weight: 600; color: var(--gmut); text-transform: uppercase; letter-spacing: 0.05em; }
+.sp-day-row { display: flex; align-items: center; gap: 12px; }
+.sp-day-label { font-size: 13px; font-weight: 500; color: var(--blk); width: 90px; flex-shrink: 0; }
+.sp-day-bar-wrap { flex: 1; }
+.sp-day-bar { height: 8px; background: rgba(58,58,58,0.08); border-radius: 99px; overflow: hidden; }
+.sp-day-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; width: 0; }
+.sp-day-fill--done { background: var(--grn); }
+.sp-day-fill--fail { background: var(--brand); }
+.sp-day-fill--partial { background: rgba(58,58,58,0.3); }
+.sp-day-fill--none { background: transparent; }
+.sp-day-stat { font-size: 13px; font-weight: 500; color: var(--gmut); width: 60px; text-align: right; flex-shrink: 0; }
+.sp-day-stat--done { color: var(--grn); }
+.sp-day-stat--fail { color: var(--brand); }
+.sp-day-fails { font-weight: 400; }
+
 .adm-body { padding: 0; overflow-y: auto; display: flex; flex-direction: column; flex: 1; }
 .adm-tabs { display: flex; gap: 8px; padding: 12px 16px 0; }
 .adm-tab { flex: 1; padding: 10px; border-radius: 12px; border: 1.5px solid rgba(58,58,58,0.12); background: var(--wht); color: var(--gmut); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; }

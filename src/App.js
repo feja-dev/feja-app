@@ -384,7 +384,7 @@ function NumPad({ value, onValue, onDone }) {
   );
 }
 
-function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSections, onDashboard, onSettings }) {
+function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSections, onDashboard, onSettings, onProgress }) {
   const [loadedSections, setLoadedSections] = useState(null);
   const sections = propSections?.length > 0 ? propSections : (loadedSections || LOG_SECTIONS);
   const [draftTemp, setDraftTemp] = useState({});
@@ -529,10 +529,11 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
             <span className="hdr-shift">{currentShift} check</span>
             <button className="signout-pill" onClick={onSignOut}>sign out</button>
           </div>
-          {(onDashboard || onSettings) && (
+          {(onDashboard || onSettings || onProgress) && (
             <div className="app-hdr-admin-nav">
               {onDashboard && <button className="adm-nav-btn" onClick={onDashboard}>Dashboard</button>}
               {onSettings && <button className="adm-nav-btn" onClick={onSettings}>Settings</button>}
+              {onProgress && <button className="adm-nav-btn" onClick={onProgress}>My Progress</button>}
             </div>
           )}
         </div>
@@ -1173,6 +1174,175 @@ function DashboardView({ sections, exportOpen, setExportOpen, venueId }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function StaffProgressView({ user, venue, sections }) {
+  const [logsByDay, setLogsByDay] = useState({});
+  const totalItems = sections.reduce((n, s) => n + s.items.length, 0);
+
+  const getShift = () => {
+    const h = new Date().getHours();
+    if (h >= 5 && h < 11) return 'Breakfast';
+    if (h >= 11 && h < 15) return 'Lunch';
+    if (h >= 15 && h < 22) return 'Dinner';
+    return 'Night';
+  };
+
+  useEffect(() => {
+    const fetch = async () => {
+      const since = new Date();
+      since.setDate(since.getDate() - 6);
+      since.setHours(0, 0, 0, 0);
+      let query = supabase.from('logs').select('*')
+        .gte('logged_at', since.toISOString())
+        .order('logged_at', { ascending: false });
+      if (venue?.id) query = query.eq('venue_id', venue.id);
+      if (user?.id) query = query.eq('user_id', user.id);
+      const { data } = await query;
+      if (!data) return;
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const grouped = {};
+      data.forEach(log => {
+        const d = new Date(log.logged_at); d.setHours(0, 0, 0, 0);
+        const offset = Math.round((today - d) / 86400000);
+        if (offset >= 0 && offset <= 6) {
+          if (!grouped[offset]) grouped[offset] = [];
+          grouped[offset].push(log);
+        }
+      });
+      setLogsByDay(grouped);
+    };
+    fetch();
+  }, [venue?.id, user?.id]);
+
+  const todayLogs = logsByDay[0] || [];
+  const todayLogged = todayLogs.length;
+  const todayFails = todayLogs.filter(l => l.result === 'fail').length;
+  const todayPct = totalItems > 0 ? Math.round((todayLogged / totalItems) * 100) : 0;
+  const allDone = totalItems > 0 && todayLogged >= totalItems;
+  const summaryStatus = allDone && todayFails === 0 ? 'done' : todayFails > 0 ? 'fail' : todayLogged > 0 ? 'progress' : 'pending';
+  const summaryLabel = { done: 'All clear', fail: 'Action required', progress: 'In progress', pending: 'Not started' }[summaryStatus];
+  const lastLogTime = todayLogs[0] ? new Date(todayLogs[0].logged_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false }) : null;
+
+  const dayLabel = (offset) => {
+    if (offset === 0) return 'Today';
+    if (offset === 1) return 'Yesterday';
+    const d = new Date(); d.setDate(d.getDate() - offset);
+    return d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+  };
+
+  return (
+    <div className="dash-body">
+      <div className={`dash-summary${allDone && todayFails === 0 ? ' dash-summary--done' : todayFails > 0 ? ' dash-summary--fail' : ''}`}>
+        <div className="dash-summary-top">
+          <span className="dash-summary-shift">Today · {getShift()}</span>
+          <span className={`dash-summary-badge${summaryStatus === 'done' ? ' dash-summary-badge--done' : summaryStatus === 'progress' ? ' dash-summary-badge--progress' : summaryStatus === 'pending' ? ' dash-summary-badge--pending' : ''}`}>{summaryLabel}</span>
+        </div>
+        <div className="dash-summary-body">
+          <div className="dash-summary-left">
+            <div className="dash-summary-pct">{todayPct}%</div>
+            <div className="dash-summary-pct-lbl">complete</div>
+          </div>
+          <div className="dash-summary-right">
+            <div className="dash-summary-stat-row">
+              <span className="dash-summary-stat-val">{todayLogged}</span>
+              <span className="dash-summary-stat-lbl">of {totalItems} logged</span>
+            </div>
+            {todayFails > 0 && (
+              <div className="dash-summary-stat-row dash-summary-stat-row--fail">
+                <span className="dash-summary-stat-val">{todayFails}</span>
+                <span className="dash-summary-stat-lbl">{todayFails === 1 ? 'fail' : 'fails'}</span>
+              </div>
+            )}
+            {lastLogTime && <div className="dash-summary-lastlog">Last logged {lastLogTime}</div>}
+          </div>
+        </div>
+        <div className="dash-summary-bar">
+          <div className="dash-summary-fill" style={{ width: `${todayPct}%` }} />
+        </div>
+      </div>
+
+      <div className="sp-history">
+        <div className="sp-history-title">My last 7 days</div>
+        {Array.from({ length: 7 }, (_, i) => {
+          const logs = logsByDay[i] || [];
+          const count = logs.length;
+          const fails = logs.filter(l => l.result === 'fail').length;
+          const pct = totalItems > 0 ? Math.round((count / totalItems) * 100) : 0;
+          const status = count === 0 ? 'none' : count >= totalItems && fails === 0 ? 'done' : fails > 0 ? 'fail' : 'partial';
+          return (
+            <div key={i} className="sp-day-row">
+              <div className="sp-day-label">{dayLabel(i)}</div>
+              <div className="sp-day-bar-wrap">
+                <div className="sp-day-bar">
+                  <div className={`sp-day-fill sp-day-fill--${status}`} style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+              <div className={`sp-day-stat sp-day-stat--${status}`}>
+                {count === 0 ? '—' : `${count}/${totalItems}`}
+                {fails > 0 && <span className="sp-day-fails"> · {fails} fail{fails > 1 ? 's' : ''}</span>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function StaffApp({ onSignOut, user, venue }) {
+  const [view, setView] = useState('checklist');
+  const [sections, setSections] = useState(null);
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setTick(n => n + 1), 60000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    if (!venue?.id) return;
+    supabase.from('venues').select('sections').eq('id', venue.id).single()
+      .then(({ data }) => { if (data?.sections?.length) setSections(data.sections); });
+  }, [venue?.id]);
+
+  const resolvedSections = sections || LOG_SECTIONS;
+  const displayName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'there';
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+  const timeStr = now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  return (
+    <div className="screen app-screen">
+      {view !== 'checklist' && (
+        <div className="app-hdr">
+          <div className="app-hdr-center">
+            <div className="hdr-date">{dateStr} · {timeStr}</div>
+          </div>
+          <div className="app-hdr-bottom">
+            <div className="hdr-name">Hi, {displayName}</div>
+            <button className="signout-pill" onClick={onSignOut}>sign out</button>
+          </div>
+          <div className="app-hdr-admin-nav">
+            <button className="adm-nav-btn" onClick={() => setView('checklist')}>← Log</button>
+            <button className={`adm-nav-btn${view === 'progress' ? ' adm-nav-btn--on' : ''}`} onClick={() => setView('progress')}>My Progress</button>
+          </div>
+        </div>
+      )}
+      {view === 'checklist' && (
+        <StaffChecklist
+          onSignOut={onSignOut}
+          user={user}
+          venue={venue}
+          sections={resolvedSections}
+          onProgress={() => setView('progress')}
+        />
+      )}
+      {view === 'progress' && (
+        <StaffProgressView user={user} venue={venue} sections={resolvedSections} />
+      )}
     </div>
   );
 }
@@ -1883,7 +2053,7 @@ function App() {
       )}
 
       {screen === 'staff' && (
-        <StaffChecklist onSignOut={handleSignOut} user={user} venue={venue} />
+        <StaffApp onSignOut={handleSignOut} user={user} venue={venue} />
       )}
 
       {screen === 'admin' && (
