@@ -1929,7 +1929,7 @@ function App() {
       if (!session) {
         setUser(null);
         setVenue(null);
-        setScreen(isStaging ? 'login' : 'linktree');
+        setScreen('login');
       }
     });
 
@@ -1982,7 +1982,7 @@ function App() {
     await supabase.auth.signOut();
     setUser(null);
     setVenue(null);
-    setScreen('linktree');
+    setScreen('login');
   };
 
   if (screen === null) {
@@ -2132,7 +2132,7 @@ function App() {
       )}
 
       {screen === 'preview' && (
-        <PreviewWrapper onExit={() => { setUser(null); setScreen('landing'); }} />
+        <PreviewWrapper onExit={() => { setUser(null); setScreen('login'); }} />
       )}
     </div>
   );
