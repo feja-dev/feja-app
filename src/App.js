@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import supabase from './supabase';
 
-const logo = 'https://res.cloudinary.com/dqzdn543t/image/upload/v1778916716/fejalogo_rhu2xt.png';
+const logo = 'https://res.cloudinary.com/dqzdn543t/image/upload/v1778932146/feja-logo-light-removebg-preview_1_lzt9vu.png';
 
 const MOCK_USER = { id: null, email: 'test@feja.com', user_metadata: { name: 'Jaye', role: 'admin' } };
 
@@ -252,7 +252,7 @@ function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp, inviteVe
     <div className="lp">
 
       <nav className="lp-nav">
-        <div className="lp-nav-wordmark">fe<span>ja</span>.</div>
+        <img src={logo} alt="Feja" className="lp-nav-wordmark" />
         <button className="lp-nav-signin" onClick={onOpenApp}>Sign in</button>
       </nav>
 
@@ -336,7 +336,7 @@ function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp, inviteVe
       </section>
 
       <footer className="lp-footer">
-        <div className="lp-footer-wordmark">fe<span>ja</span>.</div>
+        <img src={logo} alt="Feja" className="lp-footer-wordmark" />
         <p className="lp-footer-tag">Less paperwork, more cooking.</p>
         <div className="lp-demo-btns">
           <button className="lp-demo-btn" onClick={onDemoStaff}>Team</button>
@@ -522,7 +522,6 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
       {!hideHeader && (
         <div className="app-hdr">
           <div className="app-hdr-center">
-            <div className="app-logo">fe<span>ja</span>.</div>
             <div className="hdr-date">{dateStr} · {timeStr}</div>
           </div>
           <div className="app-hdr-bottom">
@@ -1319,7 +1318,6 @@ function AdminDashboard({ onSignOut, user, venue }) {
       {view !== 'checklist' && (
         <div className="app-hdr">
           <div className="app-hdr-center">
-            <div className="app-logo">fe<span>ja</span>.</div>
             <div className="hdr-date">{dateStr} · {timeStr}</div>
           </div>
           <div className="app-hdr-bottom">
@@ -1750,7 +1748,7 @@ function App() {
     return (
       <div className="feja-app lt">
         <div className="lt-body">
-          <div className="lt-wordmark">fe<span>ja</span>.</div>
+          <img src={logo} alt="Feja" className="lt-wordmark" />
         </div>
       </div>
     );

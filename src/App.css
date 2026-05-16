@@ -98,8 +98,7 @@ body { font-family: var(--font); background: var(--tint); }
 .app-screen { background: var(--wht); }
 .app-hdr { padding: 20px 20px 16px; border-bottom: 1.5px solid rgba(58,58,58,0.1); display: flex; flex-direction: column; align-items: center; background: var(--wht); gap: 12px; }
 .app-hdr-center { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.app-logo { font-size: 36px; font-weight: 500; color: var(--blk); letter-spacing: -0.8px; }
-.app-logo span { color: var(--brand); }
+.app-logo { height: 40px; width: auto; display: block; }
 .hdr-date { font-size: 13px; color: var(--gmut); }
 .hdr-shift { color: var(--gmut); font-weight: 500; position: absolute; left: 50%; transform: translateX(-50%); }
 .app-hdr-bottom { width: 100%; display: flex; align-items: center; gap: 14px; position: relative; }
@@ -436,8 +435,7 @@ body { font-family: var(--font); background: var(--tint); }
 .lp { width: 100%; min-height: 100vh; background: var(--tint); font-family: var(--font); overflow-x: hidden; }
 
 .lp-nav { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: rgba(253,243,239,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(58,58,58,0.08); }
-.lp-nav-wordmark { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: var(--blk); }
-.lp-nav-wordmark span { color: var(--brand); }
+.lp-nav-wordmark { height: 36px; width: auto; display: block; }
 .lp-nav-signin { font-size: 14px; font-weight: 600; color: #fff; background: var(--brand); border: 1.5px solid var(--brand); border-radius: 20px; padding: 7px 16px; cursor: pointer; }
 .lp-nav-signin:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
 
@@ -480,8 +478,7 @@ body { font-family: var(--font); background: var(--tint); }
 .lp-demo-btns { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
 .lp-demo-btn { background: var(--brand); color: #fff; border: none; border-radius: 20px; padding: 8px 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .lp-demo-btn:hover { background: var(--brand-dark); }
-.lp-footer-wordmark { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: var(--blk); margin-bottom: 6px; }
-.lp-footer-wordmark span { color: var(--brand); }
+.lp-footer-wordmark { height: 36px; width: auto; display: block; margin-bottom: 6px; }
 .lp-footer-tag { font-size: 13px; color: var(--gmut); margin-bottom: 12px; }
 .lp-footer-contact { font-size: 13px; color: var(--brand); text-decoration: none; }
 
