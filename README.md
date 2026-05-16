@@ -1,70 +1,63 @@
-# Getting Started with Create React App
+# Feja
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Kitchen compliance made simple. Built for commercial kitchens to log temperatures, track corrective actions, and stay audit-ready.
 
-## Available Scripts
+**Live:** [feja.com.au](https://feja.com.au)
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Frontend:** React (Create React App)
+- **Auth + Database:** Supabase (`logs`, `venues`, `profiles`, `leads` tables)
+- **Hosting:** Cloudflare Pages (manual deploy via Wrangler)
+- **Email API:** Resend via Vercel serverless functions (`api/`)
+- **Logos:** Cloudinary
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## Local Development
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm install
+npm start
+```
 
-### `npm run build`
+Runs on [http://localhost:3000](http://localhost:3000).
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Deploying to Production
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Cloudflare Pages is deployed manually via Wrangler. There is no automatic Git-triggered deploy currently.
 
-### `npm run eject`
+```bash
+npm run build && npx wrangler pages deploy build --project-name feja-app
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Each deploy produces a unique preview URL (e.g. `https://abc123.feja-app.pages.dev`) and simultaneously updates [feja.com.au](https://feja.com.au).
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Routing
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Routing is handled by `public/_redirects`:
 
-## Learn More
+```
+/ /landing.html 200        → landing page
+/privacy /privacy.html 200 → privacy policy
+/* /index.html 200         → React app (everything else)
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Environment Variables
 
-### Code Splitting
+Set in a `.env` file locally (not committed). Required:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```
+REACT_APP_SUPABASE_URL=
+REACT_APP_SUPABASE_ANON_KEY=
+```
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Vercel environment variables are set in the Vercel dashboard for the `api/` functions.

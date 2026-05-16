@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
-import logo from './Feja Logov1.png';
 import supabase from './supabase';
+
+const logo = 'https://res.cloudinary.com/dqzdn543t/image/upload/v1778916716/fejalogo_rhu2xt.png';
 
 const MOCK_USER = { id: null, email: 'test@feja.com', user_metadata: { name: 'Jaye', role: 'admin' } };
 

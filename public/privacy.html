@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Feja</title>
+  <link rel="icon" type="image/png" href="/feja-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --brand: #E8401A;
+      --ink: #1C1917;
+      --ink-soft: #6B6560;
+      --ink-muted: #9A928A;
+      --bg: #FAF9F7;
+      --surface: #F2F0EC;
+      --border: rgba(0, 0, 0, 0.08);
+      --nav-bg: rgba(250, 249, 247, 0.92);
+    }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--ink); }
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--nav-bg); backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      height: 64px; display: flex; align-items: center; padding: 0 32px;
+    }
+    .logo-img { height: 40px; width: auto; }
+    .page { max-width: 680px; margin: 0 auto; padding: 56px 24px 80px; }
+    h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+    .meta { font-size: 13px; color: var(--ink-muted); margin-bottom: 40px; }
+    h3 { font-size: 15px; font-weight: 700; margin: 28px 0 10px; }
+    p { font-size: 14px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 12px; }
+    ul { padding-left: 20px; margin-bottom: 12px; }
+    li { font-size: 14px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 4px; }
+    .contact-box {
+      background: var(--surface); border-radius: 10px;
+      padding: 16px 20px; margin-top: 8px;
+    }
+    .contact-box p { margin-bottom: 4px; }
+    .back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink-muted); text-decoration: none; margin-bottom: 32px; }
+    .back:hover { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/"><img src="https://res.cloudinary.com/dqzdn543t/image/upload/v1778917140/feja-logo-light_q0iwt9.png" alt="Feja" class="logo-img"></a>
+  </nav>
+  <div class="page">
+    <a href="/" class="back">← Back to home</a>
+    <h1>Privacy Policy</h1>
+    <p class="meta">Last updated: May 2026 · Feja by Jaye · Victoria, Australia</p>
+
+    <p>Feja ("we", "us", "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, store, and share information when you use Feja. We comply with the <strong>Privacy Act 1988 (Cth)</strong> and the Australian Privacy Principles (APPs).</p>
+
+    <h3>1. Information We Collect</h3>
+    <ul>
+      <li><strong>Account information:</strong> Name, email address, business name, and role.</li>
+      <li><strong>Venue data:</strong> Kitchen or venue name, address, and operating details.</li>
+      <li><strong>Compliance records:</strong> Temperature logs, shift checklists, and food safety records.</li>
+      <li><strong>Billing information:</strong> Processed securely through Stripe. We do not store card details.</li>
+      <li><strong>Usage data:</strong> Log files, device type, browser, IP address, and feature usage.</li>
+    </ul>
+
+    <h3>2. How We Use Your Information</h3>
+    <ul>
+      <li>To provide and operate the Feja platform.</li>
+      <li>To store and display your food safety compliance records.</li>
+      <li>To process subscription payments via Stripe.</li>
+      <li>To send transactional emails (account verification, receipts).</li>
+      <li>To improve the platform through anonymised usage analytics.</li>
+    </ul>
+
+    <h3>3. Data Storage and Security</h3>
+    <p>Your data is stored in Supabase on secure cloud infrastructure. We use Row-Level Security (RLS) to ensure each venue can only access its own data. Data is encrypted in transit (TLS) and at rest.</p>
+
+    <h3>4. Data Sharing</h3>
+    <p>We do not sell your personal information. We share data only with trusted providers needed to operate Feja: <strong>Stripe</strong> (payments), <strong>Supabase</strong> (database and auth), and email providers (transactional comms).</p>
+
+    <h3>5. Data Retention</h3>
+    <p>We retain your data while your subscription is active and for up to 7 years after account closure to comply with FSANZ Standard 3.2.2A Australian food safety record-keeping requirements.</p>
+
+    <h3>6. Your Rights</h3>
+    <p>Under the Privacy Act 1988, you have the right to access, correct, or request deletion of your personal information, and to opt out of marketing communications at any time.</p>
+
+    <h3>7. Changes to This Policy</h3>
+    <p>We may update this policy from time to time and will notify you of material changes via email or in-app notice.</p>
+
+    <h3>8. Contact</h3>
+    <div class="contact-box">
+      <p><strong>Email:</strong> hello@feja.com.au</p>
+      <p><strong>Location:</strong> Victoria, Australia</p>
+    </div>
+  </div>
+</body>
+</html>
