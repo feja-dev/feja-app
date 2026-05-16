@@ -237,18 +237,10 @@ function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp, inviteVe
       }
     }
 
-    fetch('https://api.resend.com/emails', {
+    fetch('/api/notify-signup', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.REACT_APP_RESEND_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'Feja Signups <onboarding@resend.dev>',
-        to: 'jaoli1982@gmail.com',
-        subject: `New signup: ${formName.trim()} — ${formVenue.trim() || 'invited staff'}`,
-        html: `<p><strong>Name:</strong> ${formName.trim()}</p><p><strong>Venue:</strong> ${formVenue.trim() || '(invited staff)'}</p><p><strong>Email:</strong> ${formEmail.trim()}</p>`,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: formName.trim(), venue: formVenue.trim(), email: formEmail.trim() }),
     }).catch(() => {});
 
     setFormLoading(false);
@@ -1778,13 +1770,6 @@ function App() {
 
   return (
     <div className="feja-app">
-      {screen === 'linktree' && (
-        <LandingPage
-          onOpenApp={() => setScreen('login')}
-          onSignedUp={(newUser) => { setUser(newUser); loadUserData(newUser); }}
-        />
-      )}
-
       {screen === 'login' && (
         <div className="screen login-page">
           <button className="login-back-btn" onClick={() => setScreen('linktree')}>←</button>

@@ -7,7 +7,7 @@
   <meta property="og:title" content="Feja — Kitchen compliance made simple">
   <meta property="og:description" content="Ditch the paper. Log temps, track corrective actions, and stay audit-ready. Right from your phone.">
   <meta property="og:type" content="website">
-  <meta name="theme-color" content="#E8401A">
+  <meta name="theme-color" content="#1E1C1A">
   <link rel="icon" type="image/png" href="/feja-logo.png">
   <link rel="apple-touch-icon" href="/feja-logo.png">
   <title>Feja — Coming Soon</title>
@@ -24,17 +24,17 @@
     :root {
       --brand: #E8401A;
       --brand-dark: #C4320F;
-      --brand-light: #FEF0EB;
-      --ink: #1A1208;
-      --ink-soft: #4A3B2E;
-      --ink-muted: #9A8878;
-      --bg: #FAF7F4;
-      --white: #FFFFFF;
-      --border: rgba(26, 18, 8, 0.09);
-      --success-bg: #E8F5EE;
-      --success-text: #1E6B3A;
-      --warn-bg: #FEF3E2;
-      --warn-text: #8A5200;
+      --brand-light: rgba(232, 64, 26, 0.15);
+      --ink: #F0EDE8;
+      --ink-soft: #B0A89E;
+      --ink-muted: #6E6560;
+      --bg: #1E1C1A;
+      --white: #2A2724;
+      --border: rgba(255, 255, 255, 0.08);
+      --success-bg: rgba(30, 107, 58, 0.2);
+      --success-text: #4ADE80;
+      --warn-bg: rgba(138, 82, 0, 0.2);
+      --warn-text: #FBB040;
     }
 
     html { scroll-behavior: smooth; }
@@ -242,25 +242,23 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
+      max-width: 1100px;
+      width: 100%;
+      padding-top: 40px;
+    }
+
+    @media (min-width: 901px) {
+      .features-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 24px;
+        padding-top: 48px;
+      }
     }
 
     .feat {
       display: flex;
       align-items: flex-start;
-      gap: 14px;
-    }
-
-    .feat-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: var(--white);
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      font-size: 18px;
     }
 
     .feat-title {
@@ -551,7 +549,8 @@
       nav { padding: 0 24px; }
       main { padding: 40px 24px; }
       .hero { grid-template-columns: 1fr; gap: 48px; }
-      .hero-right { order: -1; }
+      .hero-right { order: 1; }
+      .hero-left { padding-left: 40px; }
       h1 { font-size: 40px; letter-spacing: -1px; }
       .tagline { font-size: 16px; }
       footer { padding: 20px 24px; }
@@ -563,9 +562,32 @@
       .notify-btn { width: 100%; }
       .phone-frame { width: 320px; border-radius: 44px; }
     }
+
+    .theme-toggle {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--white);
+      color: var(--ink-soft);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      transition: background 0.2s, color 0.2s;
+    }
+    .theme-toggle:hover { color: var(--brand); }
   </style>
 </head>
 <body>
+
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀️</button>
 
   <nav>
     <a href="/" class="logo">
@@ -612,27 +634,25 @@
 
         <div class="features-list">
           <div class="feat">
-            <div class="feat-icon" aria-hidden="true"></div>
             <div>
               <div class="feat-title">Temperature logging</div>
               <div class="feat-desc">Log fridge, freezer and hot-hold temps with FSANZ-compliant thresholds built in.</div>
             </div>
           </div>
           <div class="feat">
-            <div class="feat-icon" aria-hidden="true"></div>
             <div>
               <div class="feat-title">Shift checklists</div>
               <div class="feat-desc">Opening, mid and closing tasks your team ticks off every service — no clipboards.</div>
             </div>
           </div>
           <div class="feat">
-            <div class="feat-icon" aria-hidden="true"></div>
             <div>
               <div class="feat-title">Audit-ready records</div>
               <div class="feat-desc">Every entry timestamped and stored. Pull your history in seconds before any inspection.</div>
             </div>
           </div>
         </div>
+
       </div>
 
       <div class="hero-right">
@@ -747,6 +767,7 @@
       </div>
 
     </div>
+
   </main>
 
   <footer>
@@ -755,14 +776,15 @@
       <a href="mailto:hello@feja.com.au">Contact</a>
       <a href="/privacy">Privacy</a>
     </div>
+    <div style="width:100%; text-align:center; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:12px; color:var(--ink-muted); line-height:1.6;">
+      Feja is a record-keeping tool and does not guarantee compliance with any food safety legislation. It is your responsibility to ensure your business meets all applicable legal requirements.
+    </div>
   </footer>
 
   <script>
     var SUPABASE_URL = 'https://athjsyelayjzlwhooosp.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_09THS0Iru7dtZEP5JZSYIg_e3uxlAr_';
-    var RESEND_KEY = 're_hwsfjq2M_Ceu3cUuQVBwbWKb74LFyn4SR';
-
-    function handleSubmit(e) {
+function handleSubmit(e) {
       e.preventDefault();
       var input = document.getElementById('email-input');
       var btn = document.querySelector('.notify-btn');
@@ -792,10 +814,10 @@
         document.getElementById('notify-form').style.display = 'none';
         document.getElementById('form-note').style.display = 'none';
         document.getElementById('success-msg').style.display = 'block';
-        fetch('https://api.resend.com/emails', {
+        fetch('/api/notify', {
           method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: 'Feja Leads <onboarding@resend.dev>', to: 'jaoli1982@gmail.com', subject: 'New lead: ' + val, html: '<p>New landing page lead: <strong>' + val + '</strong></p>' })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: val }),
         }).catch(function() {});
       })
       .catch(function() {
@@ -817,6 +839,36 @@
       current = (current + 1) % screens.length;
       document.getElementById(screens[current]).classList.remove('hidden');
     }, 5000);
+
+    var isDark = true;
+    var toggleBtn = document.getElementById('theme-toggle');
+    function applyTheme() {
+      var r = document.documentElement.style;
+      if (isDark) {
+        r.setProperty('--bg', '#1E1C1A');
+        r.setProperty('--white', '#2A2724');
+        r.setProperty('--ink', '#F0EDE8');
+        r.setProperty('--ink-soft', '#B0A89E');
+        r.setProperty('--ink-muted', '#6E6560');
+        r.setProperty('--border', 'rgba(255,255,255,0.08)');
+        r.setProperty('--brand-light', 'rgba(232,64,26,0.15)');
+        toggleBtn.textContent = '☀️';
+      } else {
+        r.setProperty('--bg', '#FAF7F4');
+        r.setProperty('--white', '#FFFFFF');
+        r.setProperty('--ink', '#1A1208');
+        r.setProperty('--ink-soft', '#4A3B2E');
+        r.setProperty('--ink-muted', '#9A8878');
+        r.setProperty('--border', 'rgba(26,18,8,0.09)');
+        r.setProperty('--brand-light', '#FEF0EB');
+        toggleBtn.textContent = '🌙';
+      }
+    }
+    toggleBtn.addEventListener('click', function() {
+      isDark = !isDark;
+      applyTheme();
+    });
+    applyTheme();
   </script>
 
 </body>
