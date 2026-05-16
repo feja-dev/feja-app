@@ -444,9 +444,11 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
 
     setSubmitting(p => ({ ...p, [key]: true }));
     const loggedAt = new Date().toISOString();
+    const logId = crypto.randomUUID();
 
     if (user.id) {
       const { error } = await supabase.from('logs').insert({
+        id: logId,
         user_id: user.id,
         user_name: displayName,
         venue_id: venue?.id || null,
@@ -463,24 +465,29 @@ function StaffChecklist({ onSignOut, user, venue, hideHeader, sections: propSect
 
     setSubmitting(p => ({ ...p, [key]: false }));
     setLogged(prev => {
-      const next = { ...prev, [key]: { temp, result, note: '', actions: [], loggedAt } };
+      const next = { ...prev, [key]: { id: logId, temp, result, note: '', actions: [], loggedAt } };
       localStorage.setItem(getShiftKey(), JSON.stringify(next));
       return next;
     });
     setDraftTemp(p => { const n = { ...p }; delete n[key]; return n; });
   };
 
-  const handleSelectAction = (key, action) => {
+  const handleSelectAction = async (key, action) => {
+    let nextActions;
     setLogged(prev => {
       const current = prev[key];
       if (!current) return prev;
-      const actions = current.actions.includes(action)
+      nextActions = current.actions.includes(action)
         ? current.actions.filter(a => a !== action)
         : [...current.actions, action];
-      const next = { ...prev, [key]: { ...current, actions } };
+      const next = { ...prev, [key]: { ...current, actions: nextActions } };
       localStorage.setItem(getShiftKey(), JSON.stringify(next));
       return next;
     });
+    const logId = logged[key]?.id;
+    if (logId && user.id) {
+      await supabase.from('logs').update({ actions: nextActions }).eq('id', logId);
+    }
   };
 
   const handleUpdateNote = (key, note) => {
@@ -1291,6 +1298,63 @@ function StaffProgressView({ user, venue, sections }) {
   );
 }
 
+function BottomNav({ tabs, active, onChange }) {
+  return (
+    <div className="bottom-nav">
+      {tabs.map(tab => (
+        <button
+          key={tab.id}
+          className={`bottom-nav-btn${active === tab.id ? ' bottom-nav-btn--on' : ''}`}
+          onClick={() => onChange(tab.id)}
+        >
+          {tab.icon}
+          <span className="bottom-nav-label">{tab.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const ICON_LOG = (
+  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+    <rect x="3" y="4" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+    <line x1="11" y1="6.5" x2="19" y2="6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    <rect x="3" y="13" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+    <line x1="11" y1="15.5" x2="19" y2="15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+const ICON_PROGRESS = (
+  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+    <rect x="3" y="13" width="4" height="6" rx="1" fill="currentColor"/>
+    <rect x="9" y="8" width="4" height="11" rx="1" fill="currentColor"/>
+    <rect x="15" y="4" width="4" height="15" rx="1" fill="currentColor"/>
+  </svg>
+);
+const ICON_DASH = (
+  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+    <rect x="3" y="3" width="7" height="7" rx="2" fill="currentColor"/>
+    <rect x="12" y="3" width="7" height="7" rx="2" fill="currentColor"/>
+    <rect x="3" y="12" width="7" height="7" rx="2" fill="currentColor"/>
+    <rect x="12" y="12" width="7" height="7" rx="2" fill="currentColor"/>
+  </svg>
+);
+const ICON_SETTINGS = (
+  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+    <circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M11 2v2.5M11 17.5V20M2 11h2.5M17.5 11H20M4.93 4.93l1.77 1.77M15.3 15.3l1.77 1.77M4.93 17.07l1.77-1.77M15.3 6.7l1.77-1.77" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
+const STAFF_TABS = [
+  { id: 'checklist', label: 'Log',      icon: ICON_LOG },
+  { id: 'progress',  label: 'Progress', icon: ICON_PROGRESS },
+];
+const ADMIN_TABS = [
+  { id: 'checklist',  label: 'Log',       icon: ICON_LOG },
+  { id: 'dashboard',  label: 'Dashboard', icon: ICON_DASH },
+  { id: 'settings',   label: 'Settings',  icon: ICON_SETTINGS },
+];
+
 function StaffApp({ onSignOut, user, venue }) {
   const [view, setView] = useState('checklist');
   const [sections, setSections] = useState(null);
@@ -1312,36 +1376,35 @@ function StaffApp({ onSignOut, user, venue }) {
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
   const timeStr = now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const getShift = () => {
+    const h = now.getHours();
+    if (h >= 5  && h < 11) return 'Breakfast';
+    if (h >= 11 && h < 15) return 'Lunch';
+    if (h >= 15 && h < 22) return 'Dinner';
+    return 'Night';
+  };
 
   return (
-    <div className="screen app-screen">
-      {view !== 'checklist' && (
-        <div className="app-hdr">
-          <div className="app-hdr-center">
-            <div className="hdr-date">{dateStr} · {timeStr}</div>
-          </div>
-          <div className="app-hdr-bottom">
-            <div className="hdr-name">Hi, {displayName}</div>
-            <button className="signout-pill" onClick={onSignOut}>sign out</button>
-          </div>
-          <div className="app-hdr-admin-nav">
-            <button className="adm-nav-btn" onClick={() => setView('checklist')}>← Log</button>
-            <button className={`adm-nav-btn${view === 'progress' ? ' adm-nav-btn--on' : ''}`} onClick={() => setView('progress')}>My Progress</button>
-          </div>
+    <div className="app-layout">
+      <div className="app-hdr">
+        <div className="app-hdr-center">
+          <div className="hdr-date">{dateStr} · {timeStr}</div>
         </div>
-      )}
-      {view === 'checklist' && (
-        <StaffChecklist
-          onSignOut={onSignOut}
-          user={user}
-          venue={venue}
-          sections={resolvedSections}
-          onProgress={() => setView('progress')}
-        />
-      )}
-      {view === 'progress' && (
-        <StaffProgressView user={user} venue={venue} sections={resolvedSections} />
-      )}
+        <div className="app-hdr-bottom">
+          <div className="hdr-name">Hi, {displayName}</div>
+          <span className="hdr-shift">{getShift()} check</span>
+          <button className="signout-pill" onClick={onSignOut}>sign out</button>
+        </div>
+      </div>
+      <div className="app-layout-content">
+        {view === 'checklist' && (
+          <StaffChecklist hideHeader user={user} venue={venue} sections={resolvedSections} />
+        )}
+        {view === 'progress' && (
+          <StaffProgressView user={user} venue={venue} sections={resolvedSections} />
+        )}
+      </div>
+      <BottomNav tabs={STAFF_TABS} active={view} onChange={setView} />
     </div>
   );
 }
@@ -1500,51 +1563,38 @@ function AdminDashboard({ onSignOut, user, venue }) {
   };
 
   return (
-    <div className="screen app-screen">
-      {view !== 'checklist' && (
-        <div className="app-hdr">
-          <div className="app-hdr-center">
-            <div className="hdr-date">{dateStr} · {timeStr}</div>
-          </div>
-          <div className="app-hdr-bottom">
-            <div className="hdr-name">Hi, {displayName}</div>
-            <div className="hdr-right">
-              {trialMsLeft !== null && (
-                <span className={`trial-pill ${trialDays <= 3 ? 'trial-pill--urgent' : ''}`}>
-                  {trialMsLeft === 0
-                    ? 'Trial expired'
-                    : trialDays > 0
-                      ? `${trialDays}d ${trialHours}h left`
-                      : `${trialHours}h left`}
-                </span>
-              )}
-              <button className="signout-pill" onClick={onSignOut}>sign out</button>
-            </div>
-          </div>
-          <div className="app-hdr-admin-nav">
-            <button className="adm-nav-btn" onClick={() => setView('checklist')}>← Log</button>
-            <button className={`adm-nav-btn ${view === 'dashboard' ? 'adm-nav-btn--on' : ''}`} onClick={() => setView('dashboard')}>Dashboard</button>
-            <button className={`adm-nav-btn ${view === 'settings' ? 'adm-nav-btn--on' : ''}`} onClick={goToSettings}>Settings</button>
+    <div className="app-layout">
+      <div className="app-hdr">
+        <div className="app-hdr-center">
+          <div className="hdr-date">{dateStr} · {timeStr}</div>
+        </div>
+        <div className="app-hdr-bottom">
+          <div className="hdr-name">Hi, {displayName}</div>
+          <div className="hdr-right">
+            {trialMsLeft !== null && (
+              <span className={`trial-pill ${trialDays <= 3 ? 'trial-pill--urgent' : ''}`}>
+                {trialMsLeft === 0
+                  ? 'Trial expired'
+                  : trialDays > 0
+                    ? `${trialDays}d ${trialHours}h left`
+                    : `${trialHours}h left`}
+              </span>
+            )}
+            <button className="signout-pill" onClick={onSignOut}>sign out</button>
           </div>
         </div>
-      )}
+      </div>
 
-      {view === 'checklist' && (
-        <StaffChecklist
-          onSignOut={onSignOut}
-          user={user}
-          venue={venue}
-          sections={sections}
-          onDashboard={() => setView('dashboard')}
-          onSettings={goToSettings}
-        />
-      )}
+      <div className="app-layout-content">
+        {view === 'checklist' && (
+          <StaffChecklist hideHeader user={user} venue={venue} sections={sections} />
+        )}
 
-      {view === 'dashboard' && (
-        <DashboardView sections={sections} exportOpen={exportOpen} setExportOpen={setExportOpen} venueId={venue?.id} />
-      )}
+        {view === 'dashboard' && (
+          <DashboardView sections={sections} exportOpen={exportOpen} setExportOpen={setExportOpen} venueId={venue?.id} />
+        )}
 
-      {view === 'settings' && (
+        {view === 'settings' && (
       <div className="adm-body">
 
         <div className="adm-tabs">
@@ -1804,6 +1854,8 @@ function AdminDashboard({ onSignOut, user, venue }) {
 
       </div>
       )}
+      </div>
+      <BottomNav tabs={ADMIN_TABS} active={view} onChange={(v) => v === 'settings' ? goToSettings() : setView(v)} />
     </div>
   );
 }
