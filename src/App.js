@@ -1346,6 +1346,23 @@ function StaffApp({ onSignOut, user, venue }) {
   );
 }
 
+function PreviewWrapper({ onExit }) {
+  const [role, setRole] = useState('admin');
+  return (
+    <div>
+      <div className="preview-bar">
+        <div className="preview-tabs">
+          <button className={`preview-tab${role === 'admin' ? ' preview-tab--on' : ''}`} onClick={() => setRole('admin')}>Admin</button>
+          <button className={`preview-tab${role === 'staff' ? ' preview-tab--on' : ''}`} onClick={() => setRole('staff')}>Team</button>
+        </div>
+        <button className="preview-exit" onClick={onExit}>✕ Exit</button>
+      </div>
+      {role === 'admin' && <AdminDashboard onSignOut={onExit} user={MOCK_USER} venue={null} />}
+      {role === 'staff' && <StaffApp onSignOut={onExit} user={MOCK_USER} venue={null} />}
+    </div>
+  );
+}
+
 function AdminDashboard({ onSignOut, user, venue }) {
   const [view, setView] = useState('checklist');
   const [sections, setSections] = useState(LOG_SECTIONS);
@@ -1930,7 +1947,7 @@ function App() {
         inviteVenueId={inviteVenueId}
         onOpenApp={() => setScreen('login')}
         onDemoStaff={() => { setUser(MOCK_USER); setScreen('staff'); }}
-        onDemoAdmin={() => { setUser(MOCK_USER); setScreen('admin'); }}
+        onDemoAdmin={() => { setUser(MOCK_USER); setScreen('preview'); }}
         onSignedUp={(newUser) => { setUser(newUser); loadUserData(newUser); }}
       />
     );
@@ -2057,6 +2074,10 @@ function App() {
 
       {screen === 'admin' && (
         <AdminDashboard onSignOut={handleSignOut} user={user} venue={venue} />
+      )}
+
+      {screen === 'preview' && (
+        <PreviewWrapper onExit={() => { setUser(null); setScreen('landing'); }} />
       )}
     </div>
   );

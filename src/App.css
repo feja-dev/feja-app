@@ -352,6 +352,13 @@ body { font-family: var(--font); background: var(--tint); }
 .adm-nav-btn { font-family: var(--font); font-size: 14px; font-weight: 500; color: var(--gmut); background: rgba(58,58,58,0.06); border: none; border-radius: 20px; cursor: pointer; padding: 7px 14px; transition: background 0.15s, color 0.15s; }
 .adm-nav-btn--on { background: var(--blk); color: var(--wht); }
 
+.preview-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--blk); gap: 8px; }
+.preview-tabs { display: flex; gap: 3px; background: rgba(255,255,255,0.08); border-radius: 20px; padding: 3px; }
+.preview-tab { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.5); background: transparent; border: none; border-radius: 17px; padding: 5px 14px; cursor: pointer; transition: all 0.15s; font-family: var(--font); }
+.preview-tab--on { background: var(--wht); color: var(--blk); font-weight: 600; }
+.preview-exit { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.4); background: transparent; border: none; cursor: pointer; padding: 5px 4px; font-family: var(--font); }
+.preview-exit:hover { color: rgba(255,255,255,0.75); }
+
 .sp-history { background: var(--wht); border: 1.5px solid rgba(58,58,58,0.1); border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
 .sp-history-title { font-size: 13px; font-weight: 600; color: var(--gmut); text-transform: uppercase; letter-spacing: 0.05em; }
 .sp-day-row { display: flex; align-items: center; gap: 12px; }
