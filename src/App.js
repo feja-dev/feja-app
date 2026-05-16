@@ -1316,7 +1316,7 @@ function BottomNav({ tabs, active, onChange }) {
 }
 
 const ICON_LOG = (
-  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+  <svg width="24" height="24" viewBox="0 0 22 22" fill="none">
     <rect x="3" y="4" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
     <line x1="11" y1="6.5" x2="19" y2="6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
     <rect x="3" y="13" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
@@ -1324,14 +1324,14 @@ const ICON_LOG = (
   </svg>
 );
 const ICON_PROGRESS = (
-  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+  <svg width="24" height="24" viewBox="0 0 22 22" fill="none">
     <rect x="3" y="13" width="4" height="6" rx="1" fill="currentColor"/>
     <rect x="9" y="8" width="4" height="11" rx="1" fill="currentColor"/>
     <rect x="15" y="4" width="4" height="15" rx="1" fill="currentColor"/>
   </svg>
 );
 const ICON_DASH = (
-  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+  <svg width="24" height="24" viewBox="0 0 22 22" fill="none">
     <rect x="3" y="3" width="7" height="7" rx="2" fill="currentColor"/>
     <rect x="12" y="3" width="7" height="7" rx="2" fill="currentColor"/>
     <rect x="3" y="12" width="7" height="7" rx="2" fill="currentColor"/>
@@ -1339,7 +1339,7 @@ const ICON_DASH = (
   </svg>
 );
 const ICON_SETTINGS = (
-  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+  <svg width="24" height="24" viewBox="0 0 22 22" fill="none">
     <circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1.5"/>
     <path d="M11 2v2.5M11 17.5V20M2 11h2.5M17.5 11H20M4.93 4.93l1.77 1.77M15.3 15.3l1.77 1.77M4.93 17.07l1.77-1.77M15.3 6.7l1.77-1.77" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
@@ -1849,7 +1849,7 @@ function AdminDashboard({ onSignOut, user, venue }) {
                 : 'Manage your subscription below.'}
             </div>
           </div>
-          <button className="adm-subscription-btn">Manage subscription</button>
+          <button className="adm-subscription-btn" disabled>Coming soon</button>
         </div>
 
       </div>
