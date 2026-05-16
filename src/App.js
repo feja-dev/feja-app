@@ -216,26 +216,26 @@ function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp, inviteVe
     const signedInUser = signInData.user;
 
     if (inviteVenueId) {
-      await supabase.from('profiles').insert({
+      const { error: profileError } = await supabase.from('profiles').insert({
         id: signedInUser.id,
         name: formName.trim(),
         venue_id: inviteVenueId,
         role: 'staff',
       });
+      if (profileError) { setFormError('Could not create profile. Please try again.'); setFormLoading(false); return; }
     } else {
-      const { data: venueData } = await supabase
-        .from('venues')
-        .insert({ name: formVenue.trim() })
-        .select()
-        .single();
-      if (venueData) {
-        await supabase.from('profiles').insert({
-          id: signedInUser.id,
-          name: formName.trim(),
-          venue_id: venueData.id,
-          role: 'admin',
-        });
-      }
+      // Pre-generate the venue ID so we don't need to read it back
+      // (the SELECT after INSERT is blocked by RLS until a profile exists)
+      const venueId = crypto.randomUUID();
+      const { error: venueError } = await supabase.from('venues').insert({ id: venueId, name: formVenue.trim() });
+      if (venueError) { setFormError('Could not create venue. Please try again.'); setFormLoading(false); return; }
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: signedInUser.id,
+        name: formName.trim(),
+        venue_id: venueId,
+        role: 'admin',
+      });
+      if (profileError) { setFormError('Could not create profile. Please try again.'); setFormLoading(false); return; }
     }
 
     fetch('/api/notify-signup', {
@@ -1841,17 +1841,20 @@ function App() {
   const [resetError, setResetError] = useState('');
   const [showResetPassword, setShowResetPassword] = useState(false);
   const loadUserData = async (authUser) => {
-    const { data: profile } = await supabase
+    const { data: profile, error } = await supabase
       .from('profiles')
       .select('*, venues(*)')
       .eq('id', authUser.id)
       .single();
 
-    if (profile?.venues) setVenue(profile.venues);
+    if (error || !profile) {
+      console.error('loadUserData: no profile found', error);
+      setScreen('login');
+      return;
+    }
 
-    const role = profile?.role || authUser.user_metadata?.role;
-    if (!role) { setScreen('login'); return; }
-    setScreen(role === 'admin' ? 'admin' : 'staff');
+    if (profile.venues) setVenue(profile.venues);
+    setScreen(profile.role === 'admin' ? 'admin' : 'staff');
   };
 
   useEffect(() => {
