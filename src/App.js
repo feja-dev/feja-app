@@ -339,8 +339,7 @@ function LandingPage({ onOpenApp, onDemoStaff, onDemoAdmin, onSignedUp, inviteVe
         <img src={logo} alt="Feja" className="lp-footer-wordmark" />
         <p className="lp-footer-tag">Less paperwork, more cooking.</p>
         <div className="lp-demo-btns">
-          <button className="lp-demo-btn" onClick={onDemoStaff}>Team</button>
-          <button className="lp-demo-btn" onClick={onDemoAdmin}>Admin</button>
+          <button className="lp-demo-btn" onClick={onDemoAdmin}>🥚 Preview 🥚</button>
         </div>
         <div className="lp-footer-legal">
           <button className="lp-footer-legal-link" onClick={() => setLegalDoc('terms')}>Terms</button>
